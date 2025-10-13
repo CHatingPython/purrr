@@ -39,7 +39,6 @@ namespace win32 {
     HINSTANCE mInstance    = nullptr;
     ATOM      mWindowClass = INVALID_ATOM;
   private:
-    void getInstance();
     void registerClass();
   };
 

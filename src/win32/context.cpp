@@ -1,9 +1,14 @@
 #include "purrr/win32/context.hpp"
+#include "purrr/win32/window.hpp"
 
 namespace purrr::win32 {
 
 Context::Context(const ContextInfo &info) {
-  getInstance();
+  GetModuleHandleExW(
+      GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+      reinterpret_cast<LPCWSTR>(this),
+      &mInstance);
+
   registerClass();
 }
 
@@ -11,17 +16,10 @@ Context::~Context() {
   UnregisterClassW(MAKEINTATOM(mWindowClass), mInstance);
 }
 
-void Context::getInstance() {
-  GetModuleHandleExW(
-      GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-      reinterpret_cast<LPCWSTR>(this),
-      &mInstance);
-}
-
 void Context::registerClass() {
   auto windowClass = WNDCLASSEXW{ .cbSize        = sizeof(WNDCLASSEXW),
                                   .style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
-                                  .lpfnWndProc   = nullptr, // TODO
+                                  .lpfnWndProc   = Window::windowProcedure,
                                   .cbClsExtra    = 0,
                                   .cbWndExtra    = 0,
                                   .hInstance     = mInstance,

@@ -18,7 +18,10 @@ namespace vulkan {
     Context(const ContextInfo &info);
     ~Context();
   public:
-    Context(Context &&other) { *this = std::move(other); }
+    Context(Context &&other)
+      : purrr::platform::Context((purrr::platform::Context&&)other) {
+      *this = std::move(other);
+    }
 
     Context &operator=(Context &&other) {
       if (this == &other) return *this;
@@ -40,6 +43,8 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
+    virtual purrr::Window *createWindow(const WindowInfo &info) override;
+  public:
     VkInstance       getInstance() const { return mInstance; }
     VkPhysicalDevice getPhysicalDevice() const { return mPhysicalDevice; }
     uint32_t         getQueueFamilyIndex() const { return mQueueFamilyIndex; }
@@ -58,7 +63,7 @@ namespace vulkan {
     void getQueue();
   private:
     virtual uint32_t scorePhysicalDevice(VkPhysicalDevice device);
-    bool deviceExtensionsPresent(VkPhysicalDevice device, const std::vector<const char *> extensions);
+    bool             deviceExtensionsPresent(VkPhysicalDevice device, const std::vector<const char *> extensions);
   protected:
     uint32_t findQueueFamily(VkPhysicalDevice device);
   };

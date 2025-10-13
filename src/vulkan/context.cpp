@@ -7,7 +7,8 @@
 
 namespace purrr::vulkan {
 
-Context::Context(const ContextInfo &info) {
+Context::Context(const ContextInfo &info)
+  : purrr::platform::Context(info) {
   auto deviceExtensions = std::vector<const char *>();
 
   createInstance(info);
@@ -19,6 +20,10 @@ Context::Context(const ContextInfo &info) {
 Context::~Context() {
   if (mDevice != VK_NULL_HANDLE) vkDestroyDevice(mDevice, VK_NULL_HANDLE);
   if (mInstance != VK_NULL_HANDLE) vkDestroyInstance(mInstance, VK_NULL_HANDLE);
+}
+
+purrr::Window *Context::createWindow(const WindowInfo &info) {
+  return nullptr; // TODO
 }
 
 void Context::createInstance(const ContextInfo &info) {
