@@ -33,6 +33,7 @@ BinPackArguments: false
 AllowAllArgumentsOnNextLine: false
 Cpp11BracedListStyle: false
 AlignAfterOpenBracket: AlwaysBreak
+AlwaysBreakTemplateDeclarations: Yes
 
 ReflowComments: false
 SortIncludes: false
