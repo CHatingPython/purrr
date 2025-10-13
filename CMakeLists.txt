@@ -14,3 +14,5 @@ target_link_libraries(purrr Vulkan::Vulkan)
 
 add_executable(example example/main.cpp)
 target_link_libraries(example purrr -static)
+
+target_compile_definitions(example PRIVATE _PURRR_PLATFORM=win32)

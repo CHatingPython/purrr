@@ -8,10 +8,12 @@
 #include <vector>
 #include <vulkan/vulkan.h> // IWYU pragma: export
 
+#include "purrr/platform.hpp"
+
 namespace purrr {
 namespace vulkan {
 
-  class Context : public purrr::Context {
+  class Context : public purrr::platform::Context {
   public:
     Context(const ContextInfo &info);
     ~Context();
