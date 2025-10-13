@@ -5,6 +5,7 @@
 #include "purrr/object.hpp"
 
 #include <utility>
+#include <vector>
 #include <vulkan/vulkan.h> // IWYU pragma: export
 
 namespace purrr {
@@ -50,11 +51,12 @@ namespace vulkan {
     VkQueue          mQueue            = VK_NULL_HANDLE;
   private:
     void createInstance(const ContextInfo &info);
-    void chooseDevice();
-    void createDevice();
+    void chooseDevice(const std::vector<const char *> &extensions);
+    void createDevice(const std::vector<const char *> &extensions);
     void getQueue();
   private:
     virtual uint32_t scorePhysicalDevice(VkPhysicalDevice device);
+    bool deviceExtensionsPresent(VkPhysicalDevice device, const std::vector<const char *> extensions);
   protected:
     uint32_t findQueueFamily(VkPhysicalDevice device);
   };
