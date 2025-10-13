@@ -2,6 +2,7 @@
 #define _PURRR_CONTEXT_HPP_
 
 #include "purrr/object.hpp" // IWYU pragma: private
+#include "purrr/window.hpp" // IWYU pragma: private
 
 namespace purrr {
 
@@ -34,6 +35,8 @@ public:
 public:
   Context(const Context &)            = delete;
   Context &operator=(const Context &) = delete;
+public:
+  virtual Window *createWindow(const WindowInfo &info = {}) = 0;
 };
 
 } // namespace purrr
