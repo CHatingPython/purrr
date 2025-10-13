@@ -24,7 +24,7 @@ struct ContextInfo {
 
 class Context : public Object {
 public:
-  static Context *create(Api api, const ContextInfo &info);
+  static Context *create(Api api, const ContextInfo &info = {});
 public:
   Context()          = default;
   virtual ~Context() = default;
