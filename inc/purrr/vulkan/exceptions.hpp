@@ -13,11 +13,11 @@ namespace vulkan {
 
   class UnexpectedResult : public std::runtime_error {
   public:
-    UnexpectedResult(VkResult result)
-      : std::runtime_error("Unexpected result: "s + string_VkResult(result)) {}
+    UnexpectedResult(VkResult result, const char *where = nullptr)
+      : std::runtime_error("Unexpected result "s + string_VkResult(result) + ((where != nullptr) ? "in "s + where : ""s)) {}
   };
 
-  void expectResult(VkResult result, VkResult excepted);
+  void expectResult(const char *where, VkResult result, VkResult excepted = VK_SUCCESS);
 
 } // namespace vulkan
 } // namespace purrr

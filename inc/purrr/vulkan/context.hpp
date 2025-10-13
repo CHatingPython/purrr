@@ -4,6 +4,7 @@
 #include "purrr/context.hpp"
 #include "purrr/object.hpp"
 
+#include <utility>
 #include <vulkan/vulkan.h> // IWYU pragma: export
 
 namespace purrr {
@@ -13,6 +14,26 @@ namespace vulkan {
   public:
     Context(const ContextInfo &info);
     ~Context();
+  public:
+    Context(Context &&other) { *this = std::move(other); }
+
+    Context &operator=(Context &&other) {
+      if (this == &other) return *this;
+
+      mInstance         = other.mInstance;
+      mPhysicalDevice   = other.mPhysicalDevice;
+      mQueueFamilyIndex = other.mQueueFamilyIndex;
+      mDevice           = other.mDevice;
+      mQueue            = other.mQueue;
+
+      other.mInstance         = VK_NULL_HANDLE;
+      other.mPhysicalDevice   = VK_NULL_HANDLE;
+      other.mQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      other.mDevice           = VK_NULL_HANDLE;
+      other.mQueue            = VK_NULL_HANDLE;
+
+      return *this;
+    }
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
@@ -30,11 +51,12 @@ namespace vulkan {
   private:
     void createInstance(const ContextInfo &info);
     void chooseDevice();
-    void findQueueFamily();
     void createDevice();
     void getQueue();
   private:
     virtual uint32_t scorePhysicalDevice(VkPhysicalDevice device);
+  protected:
+    uint32_t findQueueFamily(VkPhysicalDevice device);
   };
 
 } // namespace vulkan
