@@ -2,7 +2,7 @@
 
 namespace purrr::vulkan {
 
-void exceptResult(VkResult result, VkResult excepted) {
+void expectResult(VkResult result, VkResult excepted) {
   if (result != excepted) throw UnexpectedResult(result);
 }
 

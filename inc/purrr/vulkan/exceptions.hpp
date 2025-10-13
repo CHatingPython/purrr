@@ -17,7 +17,7 @@ namespace vulkan {
       : std::runtime_error("Unexpected result: "s + string_VkResult(result)) {}
   };
 
-  void exceptResult(VkResult result, VkResult excepted);
+  void expectResult(VkResult result, VkResult excepted);
 
 } // namespace vulkan
 } // namespace purrr
