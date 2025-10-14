@@ -39,7 +39,10 @@ public:
   virtual void pollWindowEvents() const = 0;
   virtual void waitForWindowEvents() const = 0;
 public:
-  virtual Window *createWindow(const WindowInfo &info = {}) = 0;
+virtual Window *createWindow(const WindowInfo &info = {}) = 0;
+public:
+  virtual void record() = 0;
+  virtual void submit() = 0;
 };
 
 } // namespace purrr
