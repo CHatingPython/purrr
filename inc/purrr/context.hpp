@@ -41,8 +41,12 @@ public:
 public:
 virtual Window *createWindow(const WindowInfo &info = {}) = 0;
 public:
-  virtual void record() = 0;
+  virtual void begin() = 0;
+  virtual bool record(Window *window) = 0;
+  virtual void end() = 0;
   virtual void submit() = 0;
+  virtual void present() = 0;
+  virtual void waitIdle() = 0;
 };
 
 } // namespace purrr

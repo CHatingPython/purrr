@@ -3,8 +3,13 @@
 #include "purrr/vulkan/context.hpp"
 #include "purrr/vulkan/window.hpp"
 
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
 #include <vector>
 #include <unordered_set>
+
+#undef max
 
 namespace purrr::vulkan {
 
@@ -16,15 +21,138 @@ Context::Context(const ContextInfo &info)
   chooseDevice(deviceExtensions);
   createDevice(deviceExtensions);
   getQueue();
+  createCommandPool();
+  allocateCommandBuffer();
+  createFence();
 }
 
 Context::~Context() {
+  if (mFence != VK_NULL_HANDLE) vkDestroyFence(mDevice, mFence, VK_NULL_HANDLE);
+  if (mCommandBuffer != VK_NULL_HANDLE) vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mCommandBuffer);
+  if (mCommandPool != VK_NULL_HANDLE) vkDestroyCommandPool(mDevice, mCommandPool, VK_NULL_HANDLE);
+
   if (mDevice != VK_NULL_HANDLE) vkDestroyDevice(mDevice, VK_NULL_HANDLE);
   if (mInstance != VK_NULL_HANDLE) vkDestroyInstance(mInstance, VK_NULL_HANDLE);
 }
 
 purrr::Window *Context::createWindow(const WindowInfo &info) {
   return new Window(this, info);
+}
+
+void Context::begin() {
+  expectResult("Wait for fence", vkWaitForFences(mDevice, 1, &mFence, VK_TRUE, std::numeric_limits<uint64_t>::max()));
+  expectResult("Fence reset", vkResetFences(mDevice, 1, &mFence));
+}
+
+bool Context::record(purrr::Window *window) {
+  if (window->api() != api()) return false;
+  // TODO: Introduce InvalidUse exception
+  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot record before calling end()");
+
+  Window *vkWindow = reinterpret_cast<Window *>(window);
+  if (!vkWindow->sameContext(this)) return false;
+
+  mWindows.push_back(vkWindow);
+  mRCommandBuffer = vkWindow->getCommandBuffer();
+  mSwapchains.push_back(vkWindow->getSwapchain());
+
+  uint32_t imageIndex = 0;
+  VkResult result     = VK_SUCCESS;
+
+  for (bool check = false;; check = true) {
+    result = vkAcquireNextImageKHR(
+        mDevice,
+        vkWindow->getSwapchain(),
+        std::numeric_limits<uint64_t>::max(),
+        vkWindow->getImageSemaphore(),
+        VK_NULL_HANDLE,
+        &imageIndex);
+
+    if (check || result != VK_ERROR_OUT_OF_DATE_KHR) break;
+    // NOTE: Maybe make a queue of windows to recreate and recreate them in `present` or `begin`
+    vkWindow->recreateSwapchain();
+  }
+  if (result != VK_SUBOPTIMAL_KHR) expectResult("Next image acquire", result);
+
+  mImageIndices.push_back(imageIndex);
+
+  expectResult("Command buffer reset", vkResetCommandBuffer(mRCommandBuffer, 0));
+
+  auto beginInfo = VkCommandBufferBeginInfo{ .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                             .pNext            = VK_NULL_HANDLE,
+                                             .flags            = 0,
+                                             .pInheritanceInfo = VK_NULL_HANDLE };
+
+  expectResult("Command buffer begin", vkBeginCommandBuffer(mRCommandBuffer, &beginInfo));
+
+  mImageSemaphores.push_back(vkWindow->getImageSemaphore());
+  mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
+  mCommandBuffers.push_back(mRCommandBuffer);
+
+  return true;
+}
+
+void Context::end() {
+  if (mRCommandBuffer == VK_NULL_HANDLE) throw std::runtime_error("end() called before record()");
+  vkEndCommandBuffer(mRCommandBuffer);
+
+  mRCommandBuffer = VK_NULL_HANDLE;
+}
+
+void Context::submit() {
+  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot submit while recording");
+
+  auto stageMasks =
+      std::vector<VkPipelineStageFlags>(mImageSemaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+  auto submitInfo = VkSubmitInfo{ .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                                  .pNext                = VK_NULL_HANDLE,
+                                  .waitSemaphoreCount   = static_cast<uint32_t>(mImageSemaphores.size()),
+                                  .pWaitSemaphores      = mImageSemaphores.data(),
+                                  .pWaitDstStageMask    = stageMasks.data(),
+                                  .commandBufferCount   = static_cast<uint32_t>(mCommandBuffers.size()),
+                                  .pCommandBuffers      = mCommandBuffers.data(),
+                                  .signalSemaphoreCount = static_cast<uint32_t>(mSubmitSemaphores.size()),
+                                  .pSignalSemaphores    = mSubmitSemaphores.data() };
+
+  expectResult("Queue submition", vkQueueSubmit(mQueue, 1, &submitInfo, mFence));
+}
+
+void Context::present() {
+  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot present while recording");
+
+  std::vector<VkResult> results(mSwapchains.size(), VK_SUCCESS);
+
+  auto presentInfo = VkPresentInfoKHR{ .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                       .pNext              = VK_NULL_HANDLE,
+                                       .waitSemaphoreCount = static_cast<uint32_t>(mSubmitSemaphores.size()),
+                                       .pWaitSemaphores    = mSubmitSemaphores.data(),
+                                       .swapchainCount     = static_cast<uint32_t>(mSwapchains.size()),
+                                       .pSwapchains        = mSwapchains.data(),
+                                       .pImageIndices      = mImageIndices.data(),
+                                       .pResults           = results.data() };
+
+  VkResult result = vkQueuePresentKHR(mQueue, &presentInfo);
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    for (size_t i = 0; i < results.size(); ++i) {
+      result = results[i];
+      if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        mWindows[i]->recreateSwapchain();
+      }
+    }
+  } else {
+    expectResult("Presentation", result);
+  }
+
+  mWindows.clear();
+  mSwapchains.clear();
+  mImageIndices.clear();
+  mImageSemaphores.clear();
+  mSubmitSemaphores.clear();
+  mCommandBuffers.clear();
+}
+
+void Context::waitIdle() {
+  expectResult("Wait idle", vkDeviceWaitIdle(mDevice));
 }
 
 void Context::createInstance(const ContextInfo &info) {
@@ -164,6 +292,33 @@ void Context::createDevice(const std::vector<const char *> &extensions) {
 
 void Context::getQueue() {
   vkGetDeviceQueue(mDevice, mQueueFamilyIndex, 0, &mQueue);
+}
+
+void Context::createCommandPool() {
+  auto createInfo = VkCommandPoolCreateInfo{ .sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                                             .pNext            = VK_NULL_HANDLE,
+                                             .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                                             .queueFamilyIndex = mQueueFamilyIndex };
+
+  expectResult("Command pool creation", vkCreateCommandPool(mDevice, &createInfo, VK_NULL_HANDLE, &mCommandPool));
+}
+
+void Context::allocateCommandBuffer() {
+  auto allocateInfo = VkCommandBufferAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                                   .pNext              = VK_NULL_HANDLE,
+                                                   .commandPool        = mCommandPool,
+                                                   .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                                   .commandBufferCount = 1 };
+
+  expectResult("Command buffer allocation", vkAllocateCommandBuffers(mDevice, &allocateInfo, &mCommandBuffer));
+}
+
+void Context::createFence() {
+  auto createInfo = VkFenceCreateInfo{ .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                                       .pNext = VK_NULL_HANDLE,
+                                       .flags = VK_FENCE_CREATE_SIGNALED_BIT };
+
+  expectResult("Fence creation", vkCreateFence(mDevice, &createInfo, VK_NULL_HANDLE, &mFence));
 }
 
 uint32_t Context::scorePhysicalDevice(VkPhysicalDevice device) {

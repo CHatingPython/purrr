@@ -12,10 +12,19 @@ int main(void) {
   while (!window->shouldClose()) {
     context->pollWindowEvents();
 
-    context->record(); // Record commands
+    context->begin(); // Wait
 
-    context->submit(); // Submit recorded commands
+    if (context->record(window)) { // Begin recording
+      // ...
+
+      context->end(); // End recording
+    }
+
+    context->submit();
+    context->present();
   }
+
+  context->waitIdle();
 
   delete window;
   delete context;

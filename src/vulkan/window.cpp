@@ -13,12 +13,14 @@ Window::Window(Context *context, const WindowInfo &info)
   : purrr::platform::Window(context, info), mContext(context) {
   expectResult("Surface creation", createSurface(context->getInstance(), &mSurface));
   chooseSurfaceFormat();
+  allocateCommandBuffer();
   createSwapchain();
 }
 
 Window::~Window() {
   cleanupSwapchain();
 
+  if (mCommandBuffer) vkFreeCommandBuffers(mContext->getDevice(), mContext->getCommandPool(), 1, &mCommandBuffer);
   if (mSurface) vkDestroySurfaceKHR(mContext->getInstance(), mSurface, VK_NULL_HANDLE);
 }
 
@@ -43,6 +45,18 @@ void Window::chooseSurfaceFormat() {
   }
 
   throw std::runtime_error("Failed to choose a surface format");
+}
+
+void Window::allocateCommandBuffer() {
+  auto allocateInfo = VkCommandBufferAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                                   .pNext              = VK_NULL_HANDLE,
+                                                   .commandPool        = mContext->getCommandPool(),
+                                                   .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                                   .commandBufferCount = 1 };
+
+  expectResult(
+      "Command buffer allocation",
+      vkAllocateCommandBuffers(mContext->getDevice(), &allocateInfo, &mCommandBuffer));
 }
 
 void Window::createSwapchain() {
@@ -89,9 +103,38 @@ void Window::createSwapchain() {
   expectResult(
       "Swapchain creation",
       vkCreateSwapchainKHR(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mSwapchain));
+
+  expectResult(
+      "Swapchain images query",
+      vkGetSwapchainImagesKHR(mContext->getDevice(), mSwapchain, &mImageCount, VK_NULL_HANDLE));
+
+  createSemaphores();
+}
+
+void Window::createSemaphores() {
+  auto createInfo =
+      VkSemaphoreCreateInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, .pNext = VK_NULL_HANDLE, .flags = 0 };
+
+  expectResult(
+      "Semaphore creation",
+      vkCreateSemaphore(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mImageSemaphore));
+
+  mSubmitSemaphores.resize(mImageCount);
+  for (uint32_t i = 0; i < mImageCount; ++i) {
+    expectResult(
+        "Semaphore creation",
+        vkCreateSemaphore(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mSubmitSemaphores[i]));
+  }
 }
 
 void Window::cleanupSwapchain() {
+  if (mImageSemaphore) vkDestroySemaphore(mContext->getDevice(), mImageSemaphore, VK_NULL_HANDLE);
+
+  for (VkSemaphore semaphore : mSubmitSemaphores) {
+    vkDestroySemaphore(mContext->getDevice(), semaphore, VK_NULL_HANDLE);
+  }
+  mSubmitSemaphores.clear();
+
   if (mSwapchain) vkDestroySwapchainKHR(mContext->getDevice(), mSwapchain, VK_NULL_HANDLE);
 }
 
