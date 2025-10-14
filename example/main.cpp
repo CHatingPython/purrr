@@ -9,6 +9,10 @@ int main(void) {
 
   purrr::Window *window = context->createWindow(purrr::WindowInfo{ 1920, 1080, "purrr example" });
 
+  while (!window->shouldClose()) {
+    context->pollWindowEvents();
+  }
+
   delete window;
   delete context;
 

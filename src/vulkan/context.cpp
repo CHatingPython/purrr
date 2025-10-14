@@ -10,7 +10,7 @@ namespace purrr::vulkan {
 
 Context::Context(const ContextInfo &info)
   : purrr::platform::Context(info) {
-  auto deviceExtensions = std::vector<const char *>();
+  auto deviceExtensions = std::vector<const char *>({ VK_KHR_SWAPCHAIN_EXTENSION_NAME });
 
   createInstance(info);
   chooseDevice(deviceExtensions);
