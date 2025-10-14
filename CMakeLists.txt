@@ -12,7 +12,7 @@ add_library(purrr STATIC ${SRCS} ${HDRS})
 target_include_directories(purrr PRIVATE src/ PUBLIC inc/)
 target_link_libraries(purrr Vulkan::Vulkan)
 
+target_compile_definitions(purrr PRIVATE _PURRR_PLATFORM=win32 _PURRR_BACKEND_VULKAN)
+
 add_executable(example example/main.cpp)
 target_link_libraries(example purrr -static)
-
-target_compile_definitions(example PRIVATE _PURRR_PLATFORM=win32)

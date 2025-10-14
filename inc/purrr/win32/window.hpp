@@ -7,6 +7,11 @@
 
 #include <Windows.h>
 
+#ifdef _PURRR_BACKEND_VULKAN
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.h>
+#endif
+
 namespace purrr {
 namespace win32 {
 
@@ -53,6 +58,10 @@ namespace win32 {
     void   fetchPositionAndSize();
   private:
     static LRESULT windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);
+  protected:
+    #ifdef _PURRR_BACKEND_VULKAN
+    VkResult createSurface(VkInstance instance, VkSurfaceKHR *surface);
+    #endif
   };
 
 } // namespace win32

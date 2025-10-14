@@ -16,6 +16,19 @@ Context::~Context() {
   UnregisterClassW(MAKEINTATOM(mWindowClass), mInstance);
 }
 
+void Context::pollWindowEvents() const {
+  MSG msg = {};
+  while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
+}
+
+void Context::waitForWindowEvents() const {
+  WaitMessage();
+  pollWindowEvents();
+}
+
 void Context::registerClass() {
   auto windowClass = WNDCLASSEXW{ .cbSize        = sizeof(WNDCLASSEXW),
                                   .style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
@@ -31,6 +44,11 @@ void Context::registerClass() {
                                   .hIconSm       = nullptr };
 
   mWindowClass = RegisterClassExW(&windowClass);
+}
+
+void Context::appendRequiredVulkanExtensions(std::vector<const char *> &extensions) {
+  extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+  extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 }
 
 } // namespace purrr::win32

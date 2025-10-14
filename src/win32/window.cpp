@@ -119,4 +119,16 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
   }
 }
 
+#ifdef _PURRR_BACKEND_VULKAN
+VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
+  auto createInfo = VkWin32SurfaceCreateInfoKHR{ .sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                 .pNext     = VK_NULL_HANDLE,
+                                                 .flags     = 0,
+                                                 .hinstance = mContext->getInstance(),
+                                                 .hwnd      = mWindowHandle };
+
+  return vkCreateWin32SurfaceKHR(instance, &createInfo, VK_NULL_HANDLE, surface);
+}
+#endif
+
 } // namespace purrr::win32

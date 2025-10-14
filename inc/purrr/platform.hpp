@@ -1,7 +1,8 @@
 #ifndef _PURRR_PLATFORM_HPP_
 #define _PURRR_PLATFORM_HPP_
 
-#include "purrr/win32/context.hpp"
+#include "purrr/win32/context.hpp" // IWYU pragma: export
+#include "purrr/win32/window.hpp" // IWYU pragma: export
 
 namespace purrr {
 

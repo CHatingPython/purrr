@@ -1,3 +1,4 @@
+#include <vector>
 #if _PURRR_PLATFORM == win32
 
 #ifndef _PURRR_WIN32_CONTEXT_HPP_
@@ -33,6 +34,9 @@ namespace win32 {
       return *this;
     }
   public:
+    virtual void pollWindowEvents() const override;
+    virtual void waitForWindowEvents() const override;
+  public:
     HINSTANCE getInstance() const { return mInstance; }
     ATOM      getWindowClass() const { return mWindowClass; }
   private:
@@ -40,6 +44,10 @@ namespace win32 {
     ATOM      mWindowClass = INVALID_ATOM;
   private:
     void registerClass();
+  protected:
+#ifdef _PURRR_BACKEND_VULKAN
+    void appendRequiredVulkanExtensions(std::vector<const char *> &extensions);
+#endif
   };
 
 } // namespace win32

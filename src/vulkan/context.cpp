@@ -1,6 +1,7 @@
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/context.hpp"
+#include "purrr/vulkan/window.hpp"
 
 #include <vector>
 #include <unordered_set>
@@ -23,14 +24,16 @@ Context::~Context() {
 }
 
 purrr::Window *Context::createWindow(const WindowInfo &info) {
-  return nullptr; // TODO
+  return new Window(this, info);
 }
 
 void Context::createInstance(const ContextInfo &info) {
   auto layers     = std::vector<const char *>();
   auto extensions = std::vector<const char *>();
 
-  if (true) {
+  appendRequiredVulkanExtensions(extensions);
+
+  if (info.debug) {
     layers.push_back("VK_LAYER_KHRONOS_validation");
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
