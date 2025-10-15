@@ -14,7 +14,7 @@ int main(void) {
 
     context->begin(); // Wait and begin a command buffer
 
-    if (context->record(window)) { // Begin recording
+    if (context->record(window, { { { 1.0f, 1.0f, 1.0f, 1.0f } } })) { // Begin recording
       // ...
 
       context->end(); // End recording

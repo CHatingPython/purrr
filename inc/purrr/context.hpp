@@ -3,6 +3,7 @@
 
 #include "purrr/object.hpp" // IWYU pragma: private
 #include "purrr/window.hpp" // IWYU pragma: private
+#include <vector>
 
 namespace purrr {
 
@@ -26,6 +27,18 @@ struct ContextInfo {
   bool        debug         = false;
 };
 
+struct ContextClearColor {
+  float r, g, b, a;
+};
+
+union ContextClearValue {
+  ContextClearColor color;
+};
+
+struct RecordClear {
+  const std::vector<ContextClearValue> &clearValues;
+};
+
 class Context : public Object {
 public:
   static Context *create(Api api, const ContextInfo &info = {});
@@ -36,17 +49,17 @@ public:
   Context(const Context &)            = delete;
   Context &operator=(const Context &) = delete;
 public:
-  virtual void pollWindowEvents() const = 0;
+  virtual void pollWindowEvents() const    = 0;
   virtual void waitForWindowEvents() const = 0;
 public:
-virtual Window *createWindow(const WindowInfo &info = {}) = 0;
+  virtual Window *createWindow(const WindowInfo &info = {}) = 0;
 public:
-  virtual void begin() = 0;
-  virtual bool record(Window *window) = 0;
-  virtual void end() = 0;
-  virtual void submit() = 0;
-  virtual void present(bool preventSpinning = true) = 0;
-  virtual void waitIdle() = 0;
+  virtual void begin()                                          = 0;
+  virtual bool record(Window *window, const RecordClear &clear) = 0;
+  virtual void end()                                            = 0;
+  virtual void submit()                                         = 0;
+  virtual void present(bool preventSpinning = true)             = 0;
+  virtual void waitIdle()                                       = 0;
 };
 
 } // namespace purrr

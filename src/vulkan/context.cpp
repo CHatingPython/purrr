@@ -53,7 +53,7 @@ void Context::begin() {
   expectResult("Command buffer begin", vkBeginCommandBuffer(mCommandBuffer, &beginInfo));
 }
 
-bool Context::record(purrr::Window *window) {
+bool Context::record(purrr::Window *window, const RecordClear &clear) {
   if (window->api() != api()) return false;
   // TODO: Introduce InvalidUse exception
   if (mRecording) throw std::runtime_error("Cannot record before calling end()");
@@ -86,7 +86,10 @@ bool Context::record(purrr::Window *window) {
   mImageSemaphores.push_back(vkWindow->getImageSemaphore());
   mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
 
-  auto clearValue = VkClearValue{ VkClearColorValue{ 1.0f, 0.0f, 0.0f, 1.0f } };
+  auto clearValues = std::vector<VkClearValue>();
+  for (const ContextClearValue &value : clear.clearValues) {
+    clearValues.push_back(*reinterpret_cast<const VkClearValue *>(&value));
+  }
 
   auto renderPassBeginInfo =
       VkRenderPassBeginInfo{ .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -94,8 +97,8 @@ bool Context::record(purrr::Window *window) {
                              .renderPass      = vkWindow->getRenderPass(),
                              .framebuffer     = vkWindow->getFramebuffers()[imageIndex],
                              .renderArea      = VkRect2D{ .offset = {}, .extent = vkWindow->getSwapchainExtent() },
-                             .clearValueCount = 1,
-                             .pClearValues    = &clearValue };
+                             .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+                             .pClearValues    = clearValues.data() };
 
   vkCmdBeginRenderPass(mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
