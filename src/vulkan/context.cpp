@@ -57,13 +57,9 @@ bool Context::record(purrr::Window *window) {
   if (window->api() != api()) return false;
   // TODO: Introduce InvalidUse exception
   if (mRecording) throw std::runtime_error("Cannot record before calling end()");
-  mRecording = true;
 
   Window *vkWindow = reinterpret_cast<Window *>(window);
   if (!vkWindow->sameContext(this)) return false;
-
-  mWindows.push_back(vkWindow);
-  mSwapchains.push_back(vkWindow->getSwapchain());
 
   uint32_t imageIndex = 0;
   VkResult result     = VK_SUCCESS;
@@ -78,12 +74,17 @@ bool Context::record(purrr::Window *window) {
         &imageIndex);
 
     if (check || result != VK_ERROR_OUT_OF_DATE_KHR) break;
-    // NOTE: Maybe make a queue of windows to recreate and recreate them in `present` or `begin`
-    vkWindow->recreateSwapchain();
+    mRecreateQueue.push(vkWindow);
+    return false;
   }
   if (result != VK_SUBOPTIMAL_KHR) expectResult("Next image acquire", result);
 
+  mRecording = true;
+  mWindows.push_back(vkWindow);
+  mSwapchains.push_back(vkWindow->getSwapchain());
   mImageIndices.push_back(imageIndex);
+  mImageSemaphores.push_back(vkWindow->getImageSemaphore());
+  mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
 
   auto clearValue = VkClearValue{ VkClearColorValue{ 1.0f, 0.0f, 0.0f, 1.0f } };
 
@@ -97,9 +98,6 @@ bool Context::record(purrr::Window *window) {
                              .pClearValues    = &clearValue };
 
   vkCmdBeginRenderPass(mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-  mImageSemaphores.push_back(vkWindow->getImageSemaphore());
-  mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
 
   return true;
 }
@@ -129,7 +127,7 @@ void Context::submit() {
   expectResult("Queue submition", vkQueueSubmit(mQueue, 1, &submitInfo, mFence));
 }
 
-void Context::present() {
+void Context::present(bool preventSpinning) {
   if (mRecording) throw std::runtime_error("Cannot present while recording");
 
   std::vector<VkResult> results(mSwapchains.size(), VK_SUCCESS);
@@ -143,16 +141,33 @@ void Context::present() {
                                        .pImageIndices      = mImageIndices.data(),
                                        .pResults           = results.data() };
 
-  VkResult result = vkQueuePresentKHR(mQueue, &presentInfo);
-  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-    for (size_t i = 0; i < results.size(); ++i) {
-      result = results[i];
-      if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        mWindows[i]->recreateSwapchain();
+  if (!mSwapchains.empty()) {
+    VkResult result = vkQueuePresentKHR(mQueue, &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+      for (size_t i = 0; i < results.size(); ++i) {
+        result = results[i];
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+          mRecreateQueue.push(mWindows[i]);
+        }
       }
+    } else {
+      expectResult("Presentation", result);
     }
-  } else {
-    expectResult("Presentation", result);
+  }
+
+  if (!mRecreateQueue.empty()) {
+    vkDeviceWaitIdle(mDevice);
+
+    std::queue<Window *> recreateQueue = {};
+    while (!mRecreateQueue.empty()) {
+      Window *window = mRecreateQueue.back();
+      mRecreateQueue.pop();
+      if (!window->recreateSwapchain()) recreateQueue.push(window);
+    }
+
+    mRecreateQueue = recreateQueue;
+
+    if (!mRecreateQueue.empty() && mWindows.empty() && preventSpinning) waitForWindowEvents();
   }
 
   mWindows.clear();

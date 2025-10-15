@@ -4,6 +4,7 @@
 #include "purrr/context.hpp"
 #include "purrr/object.hpp"
 
+#include <queue>
 #include <utility>
 #include <vector>
 #include <vulkan/vulkan.h> // IWYU pragma: export
@@ -50,7 +51,7 @@ namespace vulkan {
     virtual bool record(purrr::Window *window) override;
     virtual void end() override;
     virtual void submit() override;
-    virtual void present() override;
+    virtual void present(bool preventSpinning) override;
     virtual void waitIdle() override;
   public:
     VkInstance       getInstance() const { return mInstance; }
@@ -76,6 +77,7 @@ namespace vulkan {
     std::vector<VkSemaphore>    mImageSemaphores  = {};
     std::vector<VkSemaphore>    mSubmitSemaphores = {};
     bool                        mRecording        = false;
+    std::queue<Window *>        mRecreateQueue    = {};
   private:
     void createInstance(const ContextInfo &info);
     void chooseDevice(const std::vector<const char *> &extensions);

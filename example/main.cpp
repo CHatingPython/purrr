@@ -9,10 +9,10 @@ int main(void) {
 
   purrr::Window *window = context->createWindow(purrr::WindowInfo{ 1920, 1080, "purrr example" });
 
-  while (!window->shouldClose()) {
+  while (!window->shouldClose()) { // Windows passed to `record` MUST NOT be destroyed before `present`
     context->pollWindowEvents();
 
-    context->begin(); // Wait
+    context->begin(); // Wait and begin a command buffer
 
     if (context->record(window)) { // Begin recording
       // ...
@@ -21,6 +21,9 @@ int main(void) {
     }
 
     context->submit();
+
+    // If every `record` call returned false and every window passed to `record` is minimized, present
+    // will wait on window events. This behaviour can be disabled by passing false.
     context->present();
   }
 

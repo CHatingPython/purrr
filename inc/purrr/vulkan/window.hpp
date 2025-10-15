@@ -69,7 +69,7 @@ namespace vulkan {
     void createSemaphores();
     void cleanupSwapchain();
   public:
-    void recreateSwapchain();
+    bool recreateSwapchain();
   };
 
 } // namespace vulkan

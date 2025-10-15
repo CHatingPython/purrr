@@ -45,7 +45,7 @@ public:
   virtual bool record(Window *window) = 0;
   virtual void end() = 0;
   virtual void submit() = 0;
-  virtual void present() = 0;
+  virtual void present(bool preventSpinning = true) = 0;
   virtual void waitIdle() = 0;
 };
 

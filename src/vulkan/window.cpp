@@ -243,17 +243,14 @@ void Window::cleanupSwapchain() {
   if (mSwapchain) vkDestroySwapchainKHR(mContext->getDevice(), mSwapchain, VK_NULL_HANDLE);
 }
 
-void Window::recreateSwapchain() {
+bool Window::recreateSwapchain() {
   auto [width, height] = getSize();
-  while (width == 0 && height == 0) {
-    mContext->waitForWindowEvents();
-    std::tie(width, height) = getSize();
-  }
-
-  vkDeviceWaitIdle(mContext->getDevice());
+  if (width == 0 || height == 0) return false;
 
   cleanupSwapchain();
   createSwapchain();
+
+  return true;
 }
 
 } // namespace purrr::vulkan
