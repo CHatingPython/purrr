@@ -70,13 +70,12 @@ namespace vulkan {
     VkCommandBuffer  mCommandBuffer    = VK_NULL_HANDLE;
     VkFence          mFence            = VK_NULL_HANDLE;
   private: // Recorded windows
-    VkCommandBuffer              mRCommandBuffer   = VK_NULL_HANDLE;
-    std::vector<Window *>        mWindows          = {};
-    std::vector<VkSwapchainKHR>  mSwapchains       = {};
-    std::vector<uint32_t>        mImageIndices     = {};
-    std::vector<VkSemaphore>     mImageSemaphores  = {};
-    std::vector<VkSemaphore>     mSubmitSemaphores = {};
-    std::vector<VkCommandBuffer> mCommandBuffers   = {};
+    std::vector<Window *>       mWindows          = {};
+    std::vector<VkSwapchainKHR> mSwapchains       = {};
+    std::vector<uint32_t>       mImageIndices     = {};
+    std::vector<VkSemaphore>    mImageSemaphores  = {};
+    std::vector<VkSemaphore>    mSubmitSemaphores = {};
+    bool                        mRecording        = false;
   private:
     void createInstance(const ContextInfo &info);
     void chooseDevice(const std::vector<const char *> &extensions);

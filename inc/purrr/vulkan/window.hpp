@@ -44,14 +44,12 @@ namespace vulkan {
   public:
     const std::vector<VkSemaphore> &getSubmitSemaphores() const { return mSubmitSemaphores; }
     const VkSemaphore              &getImageSemaphore() const { return mImageSemaphore; }
-    const VkCommandBuffer          &getCommandBuffer() const { return mCommandBuffer; }
   private:
     Context        *mContext         = nullptr;
     VkSurfaceKHR    mSurface         = VK_NULL_HANDLE;
     VkFormat        mFormat          = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR mColorSpace      = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     VkRenderPass    mRenderPass      = VK_NULL_HANDLE;
-    VkCommandBuffer mCommandBuffer   = VK_NULL_HANDLE;
     VkExtent2D      mSwapchainExtent = {};
     VkSwapchainKHR  mSwapchain       = VK_NULL_HANDLE;
     uint32_t        mImageCount      = 0;
@@ -65,7 +63,6 @@ namespace vulkan {
   private:
     void chooseSurfaceFormat();
     void createRenderPass();
-    void allocateCommandBuffer();
     void createSwapchain();
     void createImageViews();
     void createFramebuffers();

@@ -14,14 +14,12 @@ Window::Window(Context *context, const WindowInfo &info)
   expectResult("Surface creation", createSurface(context->getInstance(), &mSurface));
   chooseSurfaceFormat();
   createRenderPass();
-  allocateCommandBuffer();
   createSwapchain();
 }
 
 Window::~Window() {
   cleanupSwapchain();
 
-  if (mCommandBuffer) vkFreeCommandBuffers(mContext->getDevice(), mContext->getCommandPool(), 1, &mCommandBuffer);
   if (mRenderPass) vkDestroyRenderPass(mContext->getDevice(), mRenderPass, VK_NULL_HANDLE);
   if (mSurface) vkDestroySurfaceKHR(mContext->getInstance(), mSurface, VK_NULL_HANDLE);
 }
@@ -95,18 +93,6 @@ void Window::createRenderPass() {
   expectResult(
       "Render pass creation",
       vkCreateRenderPass(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mRenderPass));
-}
-
-void Window::allocateCommandBuffer() {
-  auto allocateInfo = VkCommandBufferAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                                                   .pNext              = VK_NULL_HANDLE,
-                                                   .commandPool        = mContext->getCommandPool(),
-                                                   .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                                                   .commandBufferCount = 1 };
-
-  expectResult(
-      "Command buffer allocation",
-      vkAllocateCommandBuffers(mContext->getDevice(), &allocateInfo, &mCommandBuffer));
 }
 
 void Window::createSwapchain() {

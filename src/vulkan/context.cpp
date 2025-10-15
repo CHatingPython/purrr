@@ -42,18 +42,27 @@ purrr::Window *Context::createWindow(const WindowInfo &info) {
 void Context::begin() {
   expectResult("Wait for fence", vkWaitForFences(mDevice, 1, &mFence, VK_TRUE, std::numeric_limits<uint64_t>::max()));
   expectResult("Fence reset", vkResetFences(mDevice, 1, &mFence));
+
+  expectResult("Command buffer reset", vkResetCommandBuffer(mCommandBuffer, 0));
+
+  auto beginInfo = VkCommandBufferBeginInfo{ .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                             .pNext            = VK_NULL_HANDLE,
+                                             .flags            = 0,
+                                             .pInheritanceInfo = VK_NULL_HANDLE };
+
+  expectResult("Command buffer begin", vkBeginCommandBuffer(mCommandBuffer, &beginInfo));
 }
 
 bool Context::record(purrr::Window *window) {
   if (window->api() != api()) return false;
   // TODO: Introduce InvalidUse exception
-  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot record before calling end()");
+  if (mRecording) throw std::runtime_error("Cannot record before calling end()");
+  mRecording = true;
 
   Window *vkWindow = reinterpret_cast<Window *>(window);
   if (!vkWindow->sameContext(this)) return false;
 
   mWindows.push_back(vkWindow);
-  mRCommandBuffer = vkWindow->getCommandBuffer();
   mSwapchains.push_back(vkWindow->getSwapchain());
 
   uint32_t imageIndex = 0;
@@ -76,15 +85,6 @@ bool Context::record(purrr::Window *window) {
 
   mImageIndices.push_back(imageIndex);
 
-  expectResult("Command buffer reset", vkResetCommandBuffer(mRCommandBuffer, 0));
-
-  auto beginInfo = VkCommandBufferBeginInfo{ .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-                                             .pNext            = VK_NULL_HANDLE,
-                                             .flags            = 0,
-                                             .pInheritanceInfo = VK_NULL_HANDLE };
-
-  expectResult("Command buffer begin", vkBeginCommandBuffer(mRCommandBuffer, &beginInfo));
-
   auto clearValue = VkClearValue{ VkClearColorValue{ 1.0f, 0.0f, 0.0f, 1.0f } };
 
   auto renderPassBeginInfo =
@@ -96,25 +96,23 @@ bool Context::record(purrr::Window *window) {
                              .clearValueCount = 1,
                              .pClearValues    = &clearValue };
 
-  vkCmdBeginRenderPass(mRCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBeginRenderPass(mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
   mImageSemaphores.push_back(vkWindow->getImageSemaphore());
   mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
-  mCommandBuffers.push_back(mRCommandBuffer);
 
   return true;
 }
 
 void Context::end() {
-  if (mRCommandBuffer == VK_NULL_HANDLE) throw std::runtime_error("end() called before record()");
-  vkCmdEndRenderPass(mRCommandBuffer);
-  vkEndCommandBuffer(mRCommandBuffer);
-
-  mRCommandBuffer = VK_NULL_HANDLE;
+  if (!mRecording) throw std::runtime_error("end() called before record()");
+  mRecording = false;
+  vkCmdEndRenderPass(mCommandBuffer);
 }
 
 void Context::submit() {
-  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot submit while recording");
+  vkEndCommandBuffer(mCommandBuffer);
+  if (mRecording) throw std::runtime_error("Cannot submit while recording");
 
   auto stageMasks =
       std::vector<VkPipelineStageFlags>(mImageSemaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -123,8 +121,8 @@ void Context::submit() {
                                   .waitSemaphoreCount   = static_cast<uint32_t>(mImageSemaphores.size()),
                                   .pWaitSemaphores      = mImageSemaphores.data(),
                                   .pWaitDstStageMask    = stageMasks.data(),
-                                  .commandBufferCount   = static_cast<uint32_t>(mCommandBuffers.size()),
-                                  .pCommandBuffers      = mCommandBuffers.data(),
+                                  .commandBufferCount   = 1,
+                                  .pCommandBuffers      = &mCommandBuffer,
                                   .signalSemaphoreCount = static_cast<uint32_t>(mSubmitSemaphores.size()),
                                   .pSignalSemaphores    = mSubmitSemaphores.data() };
 
@@ -132,7 +130,7 @@ void Context::submit() {
 }
 
 void Context::present() {
-  if (mRCommandBuffer != VK_NULL_HANDLE) throw std::runtime_error("Cannot present while recording");
+  if (mRecording) throw std::runtime_error("Cannot present while recording");
 
   std::vector<VkResult> results(mSwapchains.size(), VK_SUCCESS);
 
@@ -162,7 +160,6 @@ void Context::present() {
   mImageIndices.clear();
   mImageSemaphores.clear();
   mSubmitSemaphores.clear();
-  mCommandBuffers.clear();
 }
 
 void Context::waitIdle() {
