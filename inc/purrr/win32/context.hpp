@@ -34,14 +34,16 @@ namespace win32 {
       return *this;
     }
   public:
-    virtual void pollWindowEvents() const override;
-    virtual void waitForWindowEvents() const override;
+    virtual void   pollWindowEvents() const override;
+    virtual void   waitForWindowEvents() const override;
+    virtual double getTime() const override;
   public:
     HINSTANCE getInstance() const { return mInstance; }
     ATOM      getWindowClass() const { return mWindowClass; }
   private:
-    HINSTANCE mInstance    = nullptr;
-    ATOM      mWindowClass = INVALID_ATOM;
+    HINSTANCE mInstance       = nullptr;
+    ATOM      mWindowClass    = INVALID_ATOM;
+    uint64_t  mTimerFrequency = 0;
   private:
     void registerClass();
   protected:

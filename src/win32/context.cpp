@@ -1,6 +1,8 @@
 #include "purrr/win32/context.hpp"
 #include "purrr/win32/window.hpp"
 
+#include <cassert>
+
 namespace purrr::win32 {
 
 Context::Context(const ContextInfo &info) {
@@ -10,6 +12,8 @@ Context::Context(const ContextInfo &info) {
       &mInstance);
 
   registerClass();
+
+  assert(QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER *>(&mTimerFrequency)));
 }
 
 Context::~Context() {
@@ -27,6 +31,12 @@ void Context::pollWindowEvents() const {
 void Context::waitForWindowEvents() const {
   WaitMessage();
   pollWindowEvents();
+}
+
+double Context::getTime() const {
+  uint64_t value = 0;
+  assert(QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER *>(&value)));
+  return (double)value / mTimerFrequency;
 }
 
 void Context::registerClass() {

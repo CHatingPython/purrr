@@ -49,8 +49,9 @@ public:
   Context(const Context &)            = delete;
   Context &operator=(const Context &) = delete;
 public:
-  virtual void pollWindowEvents() const    = 0;
-  virtual void waitForWindowEvents() const = 0;
+  virtual void   pollWindowEvents() const    = 0;
+  virtual void   waitForWindowEvents() const = 0;
+  virtual double getTime() const             = 0;
 public:
   virtual Window *createWindow(const WindowInfo &info = {}) = 0;
 public:
