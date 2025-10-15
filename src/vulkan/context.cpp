@@ -85,6 +85,19 @@ bool Context::record(purrr::Window *window) {
 
   expectResult("Command buffer begin", vkBeginCommandBuffer(mRCommandBuffer, &beginInfo));
 
+  auto clearValue = VkClearValue{ VkClearColorValue{ 1.0f, 0.0f, 0.0f, 1.0f } };
+
+  auto renderPassBeginInfo =
+      VkRenderPassBeginInfo{ .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                             .pNext           = VK_NULL_HANDLE,
+                             .renderPass      = vkWindow->getRenderPass(),
+                             .framebuffer     = vkWindow->getFramebuffers()[imageIndex],
+                             .renderArea      = VkRect2D{ .offset = {}, .extent = vkWindow->getSwapchainExtent() },
+                             .clearValueCount = 1,
+                             .pClearValues    = &clearValue };
+
+  vkCmdBeginRenderPass(mRCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
   mImageSemaphores.push_back(vkWindow->getImageSemaphore());
   mSubmitSemaphores.push_back(vkWindow->getSubmitSemaphores()[imageIndex]);
   mCommandBuffers.push_back(mRCommandBuffer);
@@ -94,6 +107,7 @@ bool Context::record(purrr::Window *window) {
 
 void Context::end() {
   if (mRCommandBuffer == VK_NULL_HANDLE) throw std::runtime_error("end() called before record()");
+  vkCmdEndRenderPass(mRCommandBuffer);
   vkEndCommandBuffer(mRCommandBuffer);
 
   mRCommandBuffer = VK_NULL_HANDLE;

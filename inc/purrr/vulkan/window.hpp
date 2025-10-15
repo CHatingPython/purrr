@@ -34,8 +34,13 @@ namespace vulkan {
     VkSurfaceKHR    getSurface() const { return mSurface; }
     VkFormat        getFormat() const { return mFormat; }
     VkColorSpaceKHR getColorSpace() const { return mColorSpace; }
+    VkRenderPass    getRenderPass() const { return mRenderPass; }
     VkExtent2D      getSwapchainExtent() const { return mSwapchainExtent; }
     VkSwapchainKHR  getSwapchain() const { return mSwapchain; }
+  public:
+    const std::vector<VkImage>       &getImages() const { return mImages; }
+    const std::vector<VkImageView>   &getImageViews() const { return mImageViews; }
+    const std::vector<VkFramebuffer> &getFramebuffers() const { return mFramebuffers; }
   public:
     const std::vector<VkSemaphore> &getSubmitSemaphores() const { return mSubmitSemaphores; }
     const VkSemaphore              &getImageSemaphore() const { return mImageSemaphore; }
@@ -45,17 +50,25 @@ namespace vulkan {
     VkSurfaceKHR    mSurface         = VK_NULL_HANDLE;
     VkFormat        mFormat          = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR mColorSpace      = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    VkRenderPass    mRenderPass      = VK_NULL_HANDLE;
     VkCommandBuffer mCommandBuffer   = VK_NULL_HANDLE;
     VkExtent2D      mSwapchainExtent = {};
     VkSwapchainKHR  mSwapchain       = VK_NULL_HANDLE;
     uint32_t        mImageCount      = 0;
   private:
+    std::vector<VkImage>       mImages       = {};
+    std::vector<VkImageView>   mImageViews   = {};
+    std::vector<VkFramebuffer> mFramebuffers = {};
+  private:
     std::vector<VkSemaphore> mSubmitSemaphores = {};
     VkSemaphore              mImageSemaphore   = VK_NULL_HANDLE;
   private:
     void chooseSurfaceFormat();
+    void createRenderPass();
     void allocateCommandBuffer();
     void createSwapchain();
+    void createImageViews();
+    void createFramebuffers();
     void createSemaphores();
     void cleanupSwapchain();
   public:

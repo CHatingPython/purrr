@@ -13,6 +13,7 @@ Window::Window(Context *context, const WindowInfo &info)
   : purrr::platform::Window(context, info), mContext(context) {
   expectResult("Surface creation", createSurface(context->getInstance(), &mSurface));
   chooseSurfaceFormat();
+  createRenderPass();
   allocateCommandBuffer();
   createSwapchain();
 }
@@ -21,6 +22,7 @@ Window::~Window() {
   cleanupSwapchain();
 
   if (mCommandBuffer) vkFreeCommandBuffers(mContext->getDevice(), mContext->getCommandPool(), 1, &mCommandBuffer);
+  if (mRenderPass) vkDestroyRenderPass(mContext->getDevice(), mRenderPass, VK_NULL_HANDLE);
   if (mSurface) vkDestroySurfaceKHR(mContext->getInstance(), mSurface, VK_NULL_HANDLE);
 }
 
@@ -45,6 +47,54 @@ void Window::chooseSurfaceFormat() {
   }
 
   throw std::runtime_error("Failed to choose a surface format");
+}
+
+void Window::createRenderPass() {
+  auto attachment = VkAttachmentDescription{ .flags          = 0,
+                                             .format         = mFormat,
+                                             .samples        = VK_SAMPLE_COUNT_1_BIT,
+                                             .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                             .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
+                                             .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                             .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
+                                             .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR };
+
+  auto attachmentReference =
+      VkAttachmentReference{ .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+  auto subpass = VkSubpassDescription{ .flags                   = 0,
+                                       .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                       .inputAttachmentCount    = 0,
+                                       .pInputAttachments       = VK_NULL_HANDLE,
+                                       .colorAttachmentCount    = 1,
+                                       .pColorAttachments       = &attachmentReference,
+                                       .pResolveAttachments     = VK_NULL_HANDLE,
+                                       .pDepthStencilAttachment = VK_NULL_HANDLE,
+                                       .preserveAttachmentCount = 0,
+                                       .pPreserveAttachments    = VK_NULL_HANDLE };
+
+  auto dependency = VkSubpassDependency{ .srcSubpass      = VK_SUBPASS_EXTERNAL,
+                                         .dstSubpass      = 0,
+                                         .srcStageMask    = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                         .dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                         .srcAccessMask   = 0,
+                                         .dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                                         .dependencyFlags = 0 };
+
+  auto createInfo = VkRenderPassCreateInfo{ .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                            .pNext           = VK_NULL_HANDLE,
+                                            .flags           = 0,
+                                            .attachmentCount = 1,
+                                            .pAttachments    = &attachment,
+                                            .subpassCount    = 1,
+                                            .pSubpasses      = &subpass,
+                                            .dependencyCount = 1,
+                                            .pDependencies   = &dependency };
+
+  expectResult(
+      "Render pass creation",
+      vkCreateRenderPass(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mRenderPass));
 }
 
 void Window::allocateCommandBuffer() {
@@ -107,8 +157,65 @@ void Window::createSwapchain() {
   expectResult(
       "Swapchain images query",
       vkGetSwapchainImagesKHR(mContext->getDevice(), mSwapchain, &mImageCount, VK_NULL_HANDLE));
+  mImages.resize(mImageCount);
+  expectResult(
+      "Swapchain images query",
+      vkGetSwapchainImagesKHR(mContext->getDevice(), mSwapchain, &mImageCount, mImages.data()));
 
+  createImageViews();
+  createFramebuffers();
   createSemaphores();
+}
+
+void Window::createImageViews() {
+  mImageViews.reserve(mImageCount);
+
+  auto createInfo =
+      VkImageViewCreateInfo{ .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                             .pNext            = VK_NULL_HANDLE,
+                             .flags            = 0,
+                             .image            = VK_NULL_HANDLE,
+                             .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+                             .format           = mFormat,
+                             .components       = VkComponentMapping{ .r = VK_COMPONENT_SWIZZLE_R,
+                                                                     .g = VK_COMPONENT_SWIZZLE_G,
+                                                                     .b = VK_COMPONENT_SWIZZLE_B,
+                                                                     .a = VK_COMPONENT_SWIZZLE_A },
+                             .subresourceRange = VkImageSubresourceRange{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                                                                          .baseMipLevel   = 0,
+                                                                          .levelCount     = 1,
+                                                                          .baseArrayLayer = 0,
+                                                                          .layerCount     = 1 } };
+
+  for (const VkImage &image : mImages) {
+    createInfo.image = image;
+
+    expectResult(
+        "Image view creation",
+        vkCreateImageView(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mImageViews.emplace_back()));
+  }
+}
+
+void Window::createFramebuffers() {
+  mFramebuffers.reserve(mImageCount);
+
+  auto createInfo = VkFramebufferCreateInfo{ .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                             .pNext           = VK_NULL_HANDLE,
+                                             .flags           = 0,
+                                             .renderPass      = mRenderPass,
+                                             .attachmentCount = 1,
+                                             .pAttachments    = VK_NULL_HANDLE,
+                                             .width           = mSwapchainExtent.width,
+                                             .height          = mSwapchainExtent.height,
+                                             .layers          = 1 };
+
+  for (const VkImageView &imageView : mImageViews) {
+    createInfo.pAttachments = &imageView;
+
+    expectResult(
+        "Framebuffer creation",
+        vkCreateFramebuffer(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mFramebuffers.emplace_back()));
+  }
 }
 
 void Window::createSemaphores() {
@@ -134,6 +241,18 @@ void Window::cleanupSwapchain() {
     vkDestroySemaphore(mContext->getDevice(), semaphore, VK_NULL_HANDLE);
   }
   mSubmitSemaphores.clear();
+
+  for (VkFramebuffer framebuffer : mFramebuffers) {
+    vkDestroyFramebuffer(mContext->getDevice(), framebuffer, VK_NULL_HANDLE);
+  }
+  mFramebuffers.clear();
+
+  for (VkImageView imageView : mImageViews) {
+    vkDestroyImageView(mContext->getDevice(), imageView, VK_NULL_HANDLE);
+  }
+  mImageViews.clear();
+
+  mImages.clear();
 
   if (mSwapchain) vkDestroySwapchainKHR(mContext->getDevice(), mSwapchain, VK_NULL_HANDLE);
 }
