@@ -46,6 +46,7 @@ namespace vulkan {
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
     virtual purrr::Window *createWindow(const WindowInfo &info) override;
+    virtual purrr::Buffer *createBuffer(const BufferInfo &info) override;
   public:
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
@@ -91,6 +92,10 @@ namespace vulkan {
     bool             deviceExtensionsPresent(VkPhysicalDevice device, const std::vector<const char *> extensions);
   protected:
     uint32_t findQueueFamily(VkPhysicalDevice device);
+  public:
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    VkCommandBuffer beginSingleTimeCommands();
+    void submitSingleTimeCommands(VkCommandBuffer commandBuffer);
   };
 
 } // namespace vulkan

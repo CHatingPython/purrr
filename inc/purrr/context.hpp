@@ -3,6 +3,7 @@
 
 #include "purrr/object.hpp" // IWYU pragma: private
 #include "purrr/window.hpp" // IWYU pragma: private
+#include "purrr/buffer.hpp" // IWYU pragma: private
 #include <vector>
 
 namespace purrr {
@@ -54,6 +55,7 @@ public:
   virtual double getTime() const             = 0;
 public:
   virtual Window *createWindow(const WindowInfo &info = {}) = 0;
+  virtual Buffer *createBuffer(const BufferInfo &info = {}) = 0;
 public:
   virtual void begin()                                          = 0;
   virtual bool record(Window *window, const RecordClear &clear) = 0;

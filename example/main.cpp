@@ -4,12 +4,25 @@
 
 purrr::ContextClearColor HSVtoRGB(float h, float s, float v);
 
+struct Vertex {
+  float x, y;
+};
+static auto sVertices = std::vector<Vertex>({
+    Vertex{ 0.0f, 0.5f },
+    Vertex{ -0.5f, -0.5f },
+    Vertex{ 0.5f, -0.5f },
+});
+
 int main(void) {
   purrr::Context *context = purrr::Context::create(
       purrr::Api::Vulkan,
       purrr::ContextInfo{ purrr::Version(1, 1, 0), purrr::VERSION, "purrr" });
 
   purrr::Window *window = context->createWindow(purrr::WindowInfo{ 1920, 1080, "purrr example" });
+
+  purrr::Buffer *vertexBuffer =
+      context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Vertex, sizeof(Vertex) * sVertices.size() });
+  vertexBuffer->copy(sVertices.data(), 0, sizeof(Vertex) * sVertices.size());
 
   double lastTime = context->getTime();
 

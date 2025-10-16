@@ -2,6 +2,7 @@
 
 #include "purrr/vulkan/context.hpp"
 #include "purrr/vulkan/window.hpp"
+#include "purrr/vulkan/buffer.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -37,6 +38,10 @@ Context::~Context() {
 
 purrr::Window *Context::createWindow(const WindowInfo &info) {
   return new Window(this, info);
+}
+
+purrr::Buffer *Context::createBuffer(const BufferInfo &info) {
+  return new Buffer(this, info);
 }
 
 void Context::begin() {
@@ -410,6 +415,59 @@ uint32_t Context::findQueueFamily(VkPhysicalDevice device) {
   }
 
   return VK_QUEUE_FAMILY_IGNORED;
+}
+
+uint32_t Context::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+  auto memoryProperties = VkPhysicalDeviceMemoryProperties{};
+  vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memoryProperties);
+
+  for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+    if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+      return i;
+    }
+  }
+
+  throw std::runtime_error("Failed to find suitable memory type");
+}
+
+VkCommandBuffer Context::beginSingleTimeCommands() {
+  VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+  auto allocateInfo = VkCommandBufferAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                                   .pNext              = VK_NULL_HANDLE,
+                                                   .commandPool        = mCommandPool,
+                                                   .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                                   .commandBufferCount = 1 };
+
+  expectResult("Command buffer allocation", vkAllocateCommandBuffers(mDevice, &allocateInfo, &commandBuffer));
+
+  auto beginInfo = VkCommandBufferBeginInfo{ .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                             .pNext            = VK_NULL_HANDLE,
+                                             .flags            = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+                                             .pInheritanceInfo = VK_NULL_HANDLE };
+
+  vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+  return commandBuffer;
+}
+
+void Context::submitSingleTimeCommands(VkCommandBuffer commandBuffer) {
+  vkEndCommandBuffer(commandBuffer);
+
+  auto submitInfo = VkSubmitInfo{ .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                                  .pNext                = VK_NULL_HANDLE,
+                                  .waitSemaphoreCount   = 0,
+                                  .pWaitSemaphores      = VK_NULL_HANDLE,
+                                  .pWaitDstStageMask    = VK_NULL_HANDLE,
+                                  .commandBufferCount   = 1,
+                                  .pCommandBuffers      = &commandBuffer,
+                                  .signalSemaphoreCount = 0,
+                                  .pSignalSemaphores    = VK_NULL_HANDLE };
+
+  vkQueueSubmit(mQueue, 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(mQueue);
+
+  vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 }
 
 } // namespace purrr::vulkan

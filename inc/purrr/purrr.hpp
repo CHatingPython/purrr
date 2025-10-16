@@ -3,6 +3,7 @@
 
 #include "purrr/context.hpp" // IWYU pragma: export
 #include "purrr/window.hpp" // IWYU pragma: export
+#include "purrr/buffer.hpp" // IWYU pragma: export
 
 namespace purrr {
 
