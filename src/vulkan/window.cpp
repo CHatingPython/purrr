@@ -1,9 +1,11 @@
 #include "purrr/vulkan/exceptions.hpp"
+
+#include "purrr/vulkan/window.hpp"
+#include "purrr/vulkan/program.hpp"
+
 #include <algorithm>
 #include <limits>
 #include <vector>
-
-#include "purrr/vulkan/window.hpp"
 
 #undef max
 
@@ -22,6 +24,10 @@ Window::~Window() {
 
   if (mRenderPass) vkDestroyRenderPass(mContext->getDevice(), mRenderPass, VK_NULL_HANDLE);
   if (mSurface) vkDestroySurfaceKHR(mContext->getInstance(), mSurface, VK_NULL_HANDLE);
+}
+
+purrr::Program *Window::createProgram(const ProgramInfo &info) {
+  return new Program(this, mContext, info);
 }
 
 void Window::chooseSurfaceFormat() {

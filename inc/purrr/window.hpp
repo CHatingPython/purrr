@@ -3,6 +3,8 @@
 
 #include "purrr/object.hpp"
 
+#include "purrr/program.hpp" // IWYU pragma: private
+
 #include <utility>
 
 namespace purrr {
@@ -23,6 +25,8 @@ public:
 public:
   Window(const Window &)            = delete;
   Window &operator=(const Window &) = delete;
+public:
+  virtual Program *createProgram(const ProgramInfo &info) = 0;
 public:
   virtual std::pair<int, int> getSize() const     = 0;
   virtual std::pair<int, int> getPosition() const = 0;

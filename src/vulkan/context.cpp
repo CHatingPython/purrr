@@ -3,6 +3,7 @@
 #include "purrr/vulkan/context.hpp"
 #include "purrr/vulkan/window.hpp"
 #include "purrr/vulkan/buffer.hpp"
+#include "purrr/vulkan/program.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -42,6 +43,14 @@ purrr::Window *Context::createWindow(const WindowInfo &info) {
 
 purrr::Buffer *Context::createBuffer(const BufferInfo &info) {
   return new Buffer(this, info);
+}
+
+purrr::Shader *Context::createShader(const ShaderInfo &info) {
+  return new Shader(this, info);
+}
+
+purrr::Shader *Context::createShader(ShaderType type, const std::vector<char> &code) {
+  return new Shader(this, ShaderInfo{ .type = type, .code = code.data(), .codeLength = code.size() });
 }
 
 void Context::begin() {

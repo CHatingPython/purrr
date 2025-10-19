@@ -29,6 +29,8 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
+    virtual Program *createProgram(const ProgramInfo &info) override;
+  public:
     bool sameContext(Context *context) const { return mContext; }
   public:
     VkSurfaceKHR    getSurface() const { return mSurface; }

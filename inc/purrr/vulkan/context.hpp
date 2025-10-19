@@ -47,6 +47,8 @@ namespace vulkan {
   public:
     virtual purrr::Window *createWindow(const WindowInfo &info) override;
     virtual purrr::Buffer *createBuffer(const BufferInfo &info) override;
+    virtual purrr::Shader *createShader(const ShaderInfo &info) override;
+    virtual purrr::Shader *createShader(ShaderType type, const std::vector<char> &code) override;
   public:
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
@@ -93,9 +95,9 @@ namespace vulkan {
   protected:
     uint32_t findQueueFamily(VkPhysicalDevice device);
   public:
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     VkCommandBuffer beginSingleTimeCommands();
-    void submitSingleTimeCommands(VkCommandBuffer commandBuffer);
+    void            submitSingleTimeCommands(VkCommandBuffer commandBuffer);
   };
 
 } // namespace vulkan
