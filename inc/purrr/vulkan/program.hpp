@@ -38,6 +38,8 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
+    bool sameWindow(Window *window) const { return mWindow == window; }
+  public:
     VkPipelineLayout getLayout() const { return mLayout; }
     VkPipeline       getPipeline() const { return mPipeline; }
   private:

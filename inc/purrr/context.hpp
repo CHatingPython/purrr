@@ -62,6 +62,7 @@ public:
 public:
   virtual void begin()                                          = 0;
   virtual bool record(Window *window, const RecordClear &clear) = 0;
+  virtual void useProgram(Program *program)                     = 0;
   virtual void end()                                            = 0;
   virtual void submit()                                         = 0;
   virtual void present(bool preventSpinning = true)             = 0;

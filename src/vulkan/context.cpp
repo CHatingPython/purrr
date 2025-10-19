@@ -119,6 +119,14 @@ bool Context::record(purrr::Window *window, const RecordClear &clear) {
   return true;
 }
 
+void Context::useProgram(purrr::Program *program) {
+  if (program->api() != Api::Vulkan) throw std::runtime_error("Uncompatible program object");
+  Program *vkProgram = reinterpret_cast<Program *>(program);
+  if (!vkProgram->sameWindow(mWindows.back())) throw std::runtime_error("Uncompatible program object");
+
+  vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkProgram->getPipeline());
+}
+
 void Context::end() {
   if (!mRecording) throw std::runtime_error("end() called before record()");
   mRecording = false;

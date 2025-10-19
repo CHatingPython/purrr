@@ -52,6 +52,7 @@ namespace vulkan {
   public:
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
+    virtual void useProgram(purrr::Program *program) override;
     virtual void end() override;
     virtual void submit() override;
     virtual void present(bool preventSpinning) override;

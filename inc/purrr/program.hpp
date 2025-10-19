@@ -66,7 +66,7 @@ enum class FrontFace {
 };
 
 struct ProgramInfo {
-  const Shader    **shaders;
+  Shader *const    *shaders;
   size_t            shaderCount;
   const VertexInfo *vertexInfos;
   size_t            vertexInfoCount;

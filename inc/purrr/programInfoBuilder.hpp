@@ -46,14 +46,14 @@ public:
 public:
   ProgramInfo build() {
     for (size_t i = 0; i < mVertexInfos.size(); ++i) {
-      mVertexInfos[i].attributes     = (mVertexAttribs.begin() + mVertexAttribOffsets[i])._Ptr;
+      mVertexInfos[i].attributes     = &mVertexAttribs[mVertexAttribOffsets[i]];
       mVertexInfos[i].attributeCount = (i + 1 < mVertexInfos.size())
                                            ? (mVertexAttribOffsets[i + 1] - mVertexAttribOffsets[i])
                                            : (mVertexAttribs.size() - mVertexAttribOffsets[i]);
     }
 
-    return ProgramInfo{ .shaders         = mShaderInfos.data(),
-                        .shaderCount     = mShaderInfos.size(),
+    return ProgramInfo{ .shaders         = mShaders.data(),
+                        .shaderCount     = mShaders.size(),
                         .vertexInfos     = mVertexInfos.data(),
                         .vertexInfoCount = mVertexInfos.size(),
                         .topology        = mTopology,

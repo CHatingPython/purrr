@@ -6,10 +6,12 @@
 #include "purrr/format.hpp"
 
 namespace purrr {
+namespace vulkan {
 
-VkFormat vkFormat(Format format);
-Format   format(VkFormat vkFormat);
+  VkFormat vkFormat(Format format);
+  Format   format(VkFormat vkFormat);
 
+} // namespace vulkan
 } // namespace purrr
 
 #endif // _PURRR_VULKAN_FORMAT_HPP_

@@ -1,6 +1,10 @@
+#include "purrr/program.hpp"
 #include "purrr/purrr.hpp"
+#include "purrr/programInfoBuilder.hpp"
 
+#include <stdexcept>
 #include <vector> // IWYU pragma: keep
+#include <fstream>
 
 purrr::ContextClearColor HSVtoRGB(float h, float s, float v);
 
@@ -13,6 +17,18 @@ static auto sVertices = std::vector<Vertex>({
     Vertex{ 0.5f, -0.5f },
 });
 
+std::vector<char> readFile(const char *filepath) {
+  std::ifstream file(filepath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
+  if (!file.is_open()) throw std::runtime_error("Failed to open a file");
+  auto length = file.tellg();
+
+  auto content = std::vector<char>(length);
+  file.seekg(0);
+  file.read(content.data(), content.size());
+
+  return content;
+}
+
 int main(void) {
   purrr::Context *context = purrr::Context::create(
       purrr::Api::Vulkan,
@@ -23,6 +39,19 @@ int main(void) {
   purrr::Buffer *vertexBuffer =
       context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Vertex, sizeof(Vertex) * sVertices.size() });
   vertexBuffer->copy(sVertices.data(), 0, sizeof(Vertex) * sVertices.size());
+
+  purrr::Shader *vertexShader   = context->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
+  purrr::Shader *fragmentShader = context->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
+
+  purrr::Program *program = window->createProgram(purrr::ProgramInfoBuilder()
+                                                      .addShader(vertexShader)
+                                                      .addShader(fragmentShader)
+                                                      .beginVertexInfo(sizeof(Vertex), purrr::VertexInputRate::Vertex)
+                                                      .addVertexAttrib(purrr::Format::RG32Sfloat, 0) // position
+                                                      .setCullMode(purrr::CullMode::Back)
+                                                      .setFrontFace(purrr::FrontFace::CounterClockwise)
+                                                      .setTopology(purrr::Topology::TriangleList)
+                                                      .build());
 
   double lastTime = context->getTime();
 
@@ -41,7 +70,7 @@ int main(void) {
     context->begin(); // Wait and begin a command buffer
 
     if (context->record(window, { { { HSVtoRGB(hue, 1.0f, 1.0f) } } })) { // Begin recording
-      // ...
+      context->useProgram(program);
 
       context->end(); // End recording
     }
