@@ -16,11 +16,20 @@ enum class ShaderType {
 
 struct ShaderInfo {
   ShaderType  type;
-  const char *content;
-  size_t      contentLength;
+  const char *code;
+  size_t      codeLength;
 };
 
-enum class VertexinputRate {
+class Shader : public Object {
+public:
+  Shader()          = default;
+  virtual ~Shader() = default;
+public:
+  Shader(const Shader &)            = delete;
+  Shader &operator=(const Shader &) = delete;
+};
+
+enum class VertexInputRate {
   Vertex,
   Instance
 };
@@ -32,7 +41,7 @@ struct VertexAttribute {
 
 struct VertexInfo {
   uint32_t               stride;
-  VertexinputRate        inputRate;
+  VertexInputRate        inputRate;
   const VertexAttribute *attributes;
   size_t                 attributeCount;
 };
@@ -57,7 +66,7 @@ enum class FrontFace {
 };
 
 struct ProgramInfo {
-  const ShaderInfo *shaders;
+  const Shader    **shaders;
   size_t            shaderCount;
   const VertexInfo *vertexInfos;
   size_t            vertexInfoCount;

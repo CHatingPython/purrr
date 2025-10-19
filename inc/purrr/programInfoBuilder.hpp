@@ -12,12 +12,12 @@ class ProgramInfoBuilder {
 public:
   ProgramInfoBuilder() = default;
 public:
-  ProgramInfoBuilder &addShader(ShaderType type, const char *content, size_t length) {
-    mShaderInfos.emplace_back(type, content, length);
+  ProgramInfoBuilder &addShader(Shader *shader) {
+    mShaders.push_back(shader);
     return *this;
   }
 
-  ProgramInfoBuilder &beginVertexInfo(uint32_t stride, VertexinputRate inputRate) {
+  ProgramInfoBuilder &beginVertexInfo(uint32_t stride, VertexInputRate inputRate) {
     mVertexAttribOffsets.push_back(mVertexAttribs.size());
     mVertexInfos.emplace_back(stride, inputRate, nullptr, 0);
     return *this;
@@ -61,7 +61,7 @@ public:
                         .frontFace       = mFrontFace };
   }
 private:
-  std::vector<ShaderInfo>      mShaderInfos         = {};
+  std::vector<Shader *>        mShaders             = {};
   std::vector<size_t>          mVertexAttribOffsets = {};
   std::vector<VertexAttribute> mVertexAttribs       = {};
   std::vector<VertexInfo>      mVertexInfos         = {};
