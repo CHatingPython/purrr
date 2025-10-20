@@ -41,6 +41,9 @@ void Buffer::copy(void *data, size_t offset, size_t size) {
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, mBuffer, 1, &copyRegion);
 
   mContext->submitSingleTimeCommands(commandBuffer);
+
+  vkFreeMemory(mContext->getDevice(), stagingMemory, VK_NULL_HANDLE);
+  vkDestroyBuffer(mContext->getDevice(), stagingBuffer, VK_NULL_HANDLE);
 }
 
 void Buffer::createBuffer(
