@@ -53,6 +53,9 @@ int main(void) {
                                                       .setTopology(purrr::Topology::TriangleList)
                                                       .build());
 
+  delete vertexShader;
+  delete fragmentShader;
+
   double lastTime = context->getTime();
 
   static constexpr float SPEED = 0.1f;
@@ -85,6 +88,9 @@ int main(void) {
   }
 
   context->waitIdle();
+
+  delete program;
+  delete vertexBuffer;
 
   delete window;
   delete context;
