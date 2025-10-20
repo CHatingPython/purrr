@@ -50,6 +50,8 @@ namespace vulkan {
     virtual purrr::Window *createWindow(const WindowInfo &info) override;
     virtual purrr::Buffer *createBuffer(const BufferInfo &info) override;
     virtual purrr::Shader *createShader(const ShaderInfo &info) override;
+    virtual purrr::Image  *createImage(const ImageInfo &info) override;
+  public:
     virtual purrr::Shader *createShader(ShaderType type, const std::vector<char> &code) override;
   public:
     virtual void begin() override;
@@ -71,6 +73,9 @@ namespace vulkan {
     VkQueue          getQueue() const { return mQueue; }
     VkCommandPool    getCommandPool() const { return mCommandPool; }
     VkCommandBuffer  getCommandBuffer() const { return mCommandBuffer; }
+  public:
+    VkDescriptorSetLayout getTextureDescriptorSetLayout() const { return mTextureDescriptorSetLayout; }
+    VkDescriptorPool      getDescriptorPool() const { return mDescriptorPool; }
   private:
     VkInstance       mInstance         = VK_NULL_HANDLE;
     VkPhysicalDevice mPhysicalDevice   = VK_NULL_HANDLE;
@@ -80,6 +85,9 @@ namespace vulkan {
     VkCommandPool    mCommandPool      = VK_NULL_HANDLE;
     VkCommandBuffer  mCommandBuffer    = VK_NULL_HANDLE;
     VkFence          mFence            = VK_NULL_HANDLE;
+  private:
+    VkDescriptorSetLayout mTextureDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool      mDescriptorPool             = VK_NULL_HANDLE;
   private: // Recorded windows
     std::vector<Window *>       mWindows          = {};
     std::vector<VkSwapchainKHR> mSwapchains       = {};
@@ -96,6 +104,8 @@ namespace vulkan {
     void createCommandPool();
     void allocateCommandBuffer();
     void createFence();
+    void createDescriptorSetLayouts();
+    void createDescriptorPool();
   private:
     virtual uint32_t scorePhysicalDevice(VkPhysicalDevice device);
     bool             deviceExtensionsPresent(VkPhysicalDevice device, const std::vector<const char *> extensions);

@@ -4,11 +4,13 @@
 #include "purrr/vulkan/window.hpp"
 #include "purrr/vulkan/buffer.hpp"
 #include "purrr/vulkan/program.hpp"
+#include "purrr/vulkan/image.hpp"
 
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <vector>
+#include <array>
 #include <unordered_set>
 
 #undef max
@@ -36,9 +38,15 @@ Context::Context(const ContextInfo &info)
   createCommandPool();
   allocateCommandBuffer();
   createFence();
+  createDescriptorSetLayouts();
+  createDescriptorPool();
 }
 
 Context::~Context() {
+  if (mTextureDescriptorSetLayout != VK_NULL_HANDLE)
+    vkDestroyDescriptorSetLayout(mDevice, mTextureDescriptorSetLayout, VK_NULL_HANDLE);
+  if (mDescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(mDevice, mDescriptorPool, VK_NULL_HANDLE);
+
   if (mFence != VK_NULL_HANDLE) vkDestroyFence(mDevice, mFence, VK_NULL_HANDLE);
   if (mCommandBuffer != VK_NULL_HANDLE) vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mCommandBuffer);
   if (mCommandPool != VK_NULL_HANDLE) vkDestroyCommandPool(mDevice, mCommandPool, VK_NULL_HANDLE);
@@ -57,6 +65,10 @@ purrr::Buffer *Context::createBuffer(const BufferInfo &info) {
 
 purrr::Shader *Context::createShader(const ShaderInfo &info) {
   return new Shader(this, info);
+}
+
+purrr::Image *Context::createImage(const ImageInfo &info) {
+  return new Image(this, info);
 }
 
 purrr::Shader *Context::createShader(ShaderType type, const std::vector<char> &code) {
@@ -428,6 +440,42 @@ void Context::createFence() {
                                        .flags = VK_FENCE_CREATE_SIGNALED_BIT };
 
   expectResult("Fence creation", vkCreateFence(mDevice, &createInfo, VK_NULL_HANDLE, &mFence));
+}
+
+void Context::createDescriptorSetLayouts() {
+  { // Texture
+    auto binding = VkDescriptorSetLayoutBinding{ .binding            = 0,
+                                                 .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                 .descriptorCount    = 1,
+                                                 .stageFlags         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 .pImmutableSamplers = VK_NULL_HANDLE };
+
+    auto createInfo = VkDescriptorSetLayoutCreateInfo{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                                                       .pNext = VK_NULL_HANDLE,
+                                                       .flags = 0,
+                                                       .bindingCount = 1,
+                                                       .pBindings    = &binding };
+
+    expectResult(
+        "Descriptor set layout creation",
+        vkCreateDescriptorSetLayout(mDevice, &createInfo, VK_NULL_HANDLE, &mTextureDescriptorSetLayout));
+  }
+}
+
+void Context::createDescriptorPool() {
+  auto poolSizes = std::array<VkDescriptorPoolSize, 1>(
+      { VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1024 } });
+
+  auto createInfo = VkDescriptorPoolCreateInfo{ .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+                                                .pNext         = VK_NULL_HANDLE,
+                                                .flags         = 0,
+                                                .maxSets       = 1024,
+                                                .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+                                                .pPoolSizes    = poolSizes.data() };
+
+  expectResult(
+      "Descriptor pool creation",
+      vkCreateDescriptorPool(mDevice, &createInfo, VK_NULL_HANDLE, &mDescriptorPool));
 }
 
 uint32_t Context::scorePhysicalDevice(VkPhysicalDevice device) {
