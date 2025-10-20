@@ -4,6 +4,8 @@
 #include "purrr/context.hpp"
 #include "purrr/object.hpp"
 
+#include "purrr/vulkan/program.hpp"
+
 #include <queue>
 #include <utility>
 #include <vector>
@@ -60,6 +62,7 @@ namespace vulkan {
     virtual void useProgram(purrr::Program *program) override;
     virtual void useVertexBuffer(purrr::Buffer *buffer, uint32_t index) override;
     virtual void useIndexBuffer(purrr::Buffer *buffer, IndexType type) override;
+    virtual void useTextureImage(Image *image, uint32_t index) override;
     virtual void draw(size_t vertexCount, size_t instanceCount) override;
     virtual void drawIndexed(size_t indexCount, size_t instanceCount) override;
     virtual void end() override;
@@ -96,6 +99,7 @@ namespace vulkan {
     std::vector<VkSemaphore>    mImageSemaphores  = {};
     std::vector<VkSemaphore>    mSubmitSemaphores = {};
     bool                        mRecording        = false;
+    Program                    *mProgram          = nullptr;
     std::queue<Window *>        mRecreateQueue    = {};
   private:
     void createInstance(const ContextInfo &info);

@@ -3,6 +3,7 @@
 
 #include "purrr/format.hpp"
 #include "purrr/object.hpp"
+#include "purrr/sampler.hpp"
 
 namespace purrr {
 
@@ -19,6 +20,7 @@ struct ImageInfo {
     uint8_t texture : 1;
     uint8_t renderTarget : 1;
   } usage;
+  Sampler *sampler = nullptr;
 };
 
 class Image : public Object {

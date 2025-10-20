@@ -65,6 +65,11 @@ enum class FrontFace {
   CounterClockwise
 };
 
+// I had no better name in mind
+enum class ProgramSlot {
+  Texture
+};
+
 struct ProgramInfo {
   Shader *const    *shaders;
   size_t            shaderCount;
@@ -73,6 +78,8 @@ struct ProgramInfo {
   Topology          topology;
   CullMode          cullMode;
   FrontFace         frontFace;
+  ProgramSlot      *slots;
+  size_t            slotCount;
 };
 
 class Program : public Object {

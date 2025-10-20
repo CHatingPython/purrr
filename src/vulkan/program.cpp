@@ -90,11 +90,20 @@ Program::~Program() {
 }
 
 void Program::createLayout(const ProgramInfo &info) {
+  auto layouts = std::vector<VkDescriptorSetLayout>(info.slotCount);
+  for (uint32_t i = 0; i < info.slotCount; ++i) {
+    switch (info.slots[i]) {
+    case ProgramSlot::Texture: {
+      layouts[i] = mContext->getTextureDescriptorSetLayout();
+    } break;
+    }
+  }
+
   auto createInfo = VkPipelineLayoutCreateInfo{ .sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                                 .pNext                  = VK_NULL_HANDLE,
                                                 .flags                  = 0,
-                                                .setLayoutCount         = 0,
-                                                .pSetLayouts            = VK_NULL_HANDLE,
+                                                .setLayoutCount         = static_cast<uint32_t>(layouts.size()),
+                                                .pSetLayouts            = layouts.data(),
                                                 .pushConstantRangeCount = 0,
                                                 .pPushConstantRanges    = VK_NULL_HANDLE };
 

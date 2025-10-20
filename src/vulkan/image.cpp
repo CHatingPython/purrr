@@ -2,6 +2,7 @@
 
 #include "purrr/vulkan/image.hpp"
 #include "purrr/vulkan/buffer.hpp"
+#include "purrr/vulkan/sampler.hpp"
 #include "purrr/vulkan/format.hpp"
 
 #include <stdexcept>
@@ -19,13 +20,15 @@ VkImageTiling vkImageTiling(ImageTiling tiling) {
 }
 
 Image::Image(Context *context, const ImageInfo &info)
-  : mContext(context) {
+  : mContext(context), mIsTexture(info.usage.texture) {
   createImage(info);
   allocateMemory();
   createImageView(info);
+  if (info.usage.texture && info.sampler) allocateDescriptorSet(info.sampler);
 }
 
 Image::~Image() {
+  if (mDescriptorSet) vkFreeDescriptorSets(mContext->getDevice(), mContext->getDescriptorPool(), 1, &mDescriptorSet);
   if (mImageView) vkDestroyImageView(mContext->getDevice(), mImageView, VK_NULL_HANDLE);
   if (mMemory) vkFreeMemory(mContext->getDevice(), mMemory, VK_NULL_HANDLE);
   if (mImage) vkDestroyImage(mContext->getDevice(), mImage, VK_NULL_HANDLE);
@@ -36,7 +39,16 @@ void Image::copyData(size_t width, size_t height, size_t size, const void *data)
   VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
   Buffer::createBuffer(mContext, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, false, &stagingBuffer, &stagingMemory);
 
+  void *stagingData = nullptr;
+  vkMapMemory(mContext->getDevice(), stagingMemory, 0, size, 0, &stagingData);
+  memcpy(stagingData, data, size);
+  vkUnmapMemory(mContext->getDevice(), stagingMemory);
+
   VkCommandBuffer commandBuffer = mContext->beginSingleTimeCommands();
+
+  VkImageLayout        oldLayout = mLayout;
+  VkPipelineStageFlags oldStage  = mStage;
+  VkAccessFlags        oldAccess = mAccess;
 
   transitionImageLayout(
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -46,8 +58,8 @@ void Image::copyData(size_t width, size_t height, size_t size, const void *data)
 
   auto region = VkBufferImageCopy{
     .bufferOffset      = 0,
-    .bufferRowLength   = static_cast<uint32_t>(width),
-    .bufferImageHeight = static_cast<uint32_t>(height),
+    .bufferRowLength   = 0,
+    .bufferImageHeight = 0,
     .imageSubresource  = VkImageSubresourceLayers{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
                                                    .mipLevel       = 0,
                                                    .baseArrayLayer = 0,
@@ -59,7 +71,7 @@ void Image::copyData(size_t width, size_t height, size_t size, const void *data)
 
   vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-  transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, commandBuffer);
+  transitionImageLayout(oldLayout, oldStage, oldAccess, commandBuffer);
 
   mContext->submitSingleTimeCommands(commandBuffer);
 
@@ -133,6 +145,45 @@ void Image::createImageView(const ImageInfo &info) {
       vkCreateImageView(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mImageView));
 }
 
+void Image::allocateDescriptorSet(purrr::Sampler *sampler) {
+  if (sampler->api() != Api::Vulkan) throw std::runtime_error("Uncompatible sampler object");
+  Sampler *vkSampler = reinterpret_cast<Sampler *>(sampler);
+
+  auto layout = mContext->getTextureDescriptorSetLayout();
+
+  auto allocateInfo = VkDescriptorSetAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                                                   .pNext              = VK_NULL_HANDLE,
+                                                   .descriptorPool     = mContext->getDescriptorPool(),
+                                                   .descriptorSetCount = 1,
+                                                   .pSetLayouts        = &layout };
+
+  expectResult(
+      "Descriptor set allocation",
+      vkAllocateDescriptorSets(mContext->getDevice(), &allocateInfo, &mDescriptorSet));
+
+  auto imageInfo = VkDescriptorImageInfo{ .sampler     = vkSampler->getSampler(),
+                                          .imageView   = mImageView,
+                                          .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+
+  auto write = VkWriteDescriptorSet{ .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                     .pNext            = VK_NULL_HANDLE,
+                                     .dstSet           = mDescriptorSet,
+                                     .dstBinding       = 0,
+                                     .dstArrayElement  = 0,
+                                     .descriptorCount  = 1,
+                                     .descriptorType   = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                     .pImageInfo       = &imageInfo,
+                                     .pBufferInfo      = VK_NULL_HANDLE,
+                                     .pTexelBufferView = VK_NULL_HANDLE };
+
+  vkUpdateDescriptorSets(mContext->getDevice(), 1, &write, 0, VK_NULL_HANDLE);
+
+  transitionImageLayout(
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+      VK_ACCESS_SHADER_READ_BIT);
+}
+
 void Image::transitionImageLayout(
     VkImageLayout dstLayout, VkPipelineStageFlags dstStage, VkAccessFlags dstAccess, VkCommandBuffer commandBuffer) {
   if (mLayout == dstLayout && mStage == dstStage && mAccess == dstAccess) return;
@@ -163,6 +214,10 @@ void Image::transitionImageLayout(
   if (commandBuffer == VK_NULL_HANDLE) {
     mContext->submitSingleTimeCommands(cmdBuf);
   }
+
+  mLayout = dstLayout;
+  mStage  = dstStage;
+  mAccess = dstAccess;
 }
 
 } // namespace purrr::vulkan

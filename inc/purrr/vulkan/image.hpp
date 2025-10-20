@@ -18,15 +18,21 @@ namespace vulkan {
   public:
     virtual void copyData(size_t width, size_t height, size_t size, const void *data) override;
   public:
-    Format      getFormat() const { return mFormat; }
-    VkImage     getImage() const { return mImage; }
-    VkImageView getImageView() const { return mImageView; }
+    Format          getFormat() const { return mFormat; }
+    VkImage         getImage() const { return mImage; }
+    VkImageView     getImageView() const { return mImageView; }
+    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
+  public:
+    bool isTexture() const { return mIsTexture; }
   private:
-    Context       *mContext   = nullptr;
-    Format         mFormat    = Format::Undefined;
-    VkImage        mImage     = VK_NULL_HANDLE;
-    VkDeviceMemory mMemory    = VK_NULL_HANDLE;
-    VkImageView    mImageView = VK_NULL_HANDLE;
+    Context        *mContext       = nullptr;
+    Format          mFormat        = Format::Undefined;
+    VkImage         mImage         = VK_NULL_HANDLE;
+    VkDeviceMemory  mMemory        = VK_NULL_HANDLE;
+    VkImageView     mImageView     = VK_NULL_HANDLE;
+    VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
+  private:
+    bool mIsTexture = false;
   private:
     VkImageLayout        mLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkPipelineStageFlags mStage  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
@@ -35,6 +41,7 @@ namespace vulkan {
     void createImage(const ImageInfo &info);
     void allocateMemory();
     void createImageView(const ImageInfo &info);
+    void allocateDescriptorSet(purrr::Sampler *sampler);
   public:
     void transitionImageLayout(
         VkImageLayout        dstLayout,

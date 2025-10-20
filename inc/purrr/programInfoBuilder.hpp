@@ -29,6 +29,11 @@ public:
     return *this;
   }
 
+  ProgramInfoBuilder &addSlot(ProgramSlot slot) {
+    mSlots.push_back(slot);
+    return *this;
+  }
+
   ProgramInfoBuilder &setTopology(Topology topology) {
     mTopology = topology;
     return *this;
@@ -58,13 +63,16 @@ public:
                         .vertexInfoCount = mVertexInfos.size(),
                         .topology        = mTopology,
                         .cullMode        = mCullMode,
-                        .frontFace       = mFrontFace };
+                        .frontFace       = mFrontFace,
+                        .slots           = mSlots.data(),
+                        .slotCount       = mSlots.size() };
   }
 private:
   std::vector<Shader *>        mShaders             = {};
   std::vector<size_t>          mVertexAttribOffsets = {};
   std::vector<VertexAttribute> mVertexAttribs       = {};
   std::vector<VertexInfo>      mVertexInfos         = {};
+  std::vector<ProgramSlot>     mSlots               = {};
   Topology                     mTopology            = Topology::PointList;
   CullMode                     mCullMode            = CullMode::Both;
   FrontFace                    mFrontFace           = FrontFace::Clockwise;

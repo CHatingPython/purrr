@@ -77,6 +77,7 @@ public:
   virtual void useProgram(Program *program)                             = 0;
   virtual void useVertexBuffer(Buffer *buffer, uint32_t index)          = 0;
   virtual void useIndexBuffer(Buffer *buffer, IndexType type)           = 0;
+  virtual void useTextureImage(Image *image, uint32_t index)            = 0;
   virtual void draw(size_t vertexCount, size_t instanceCount = 1)       = 0;
   virtual void drawIndexed(size_t indexCount, size_t instanceCount = 1) = 0;
   virtual void end()                                                    = 0;

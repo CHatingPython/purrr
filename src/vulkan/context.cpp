@@ -164,6 +164,7 @@ void Context::useProgram(purrr::Program *program) {
   if (program->api() != Api::Vulkan) throw std::runtime_error("Uncompatible program object");
   Program *vkProgram = reinterpret_cast<Program *>(program);
   if (!vkProgram->sameWindow(mWindows.back())) throw std::runtime_error("Uncompatible program object");
+  mProgram = vkProgram;
 
   vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkProgram->getPipeline());
 }
@@ -188,6 +189,26 @@ void Context::useIndexBuffer(purrr::Buffer *buffer, IndexType type) {
   if (vkBuffer->getType() != BufferType::Index) throw std::runtime_error("Uncompatible buffer object");
 
   vkCmdBindIndexBuffer(mCommandBuffer, vkBuffer->getBuffer(), 0, vkIndexType(type));
+}
+
+void Context::useTextureImage(purrr::Image *image, uint32_t index) {
+  if (!mRecording) throw std::runtime_error("useTextureImage() called before record()");
+  if (!mProgram) throw std::runtime_error("useTextureImage() called before useProgram()");
+
+  if (image->api() != Api::Vulkan) throw std::runtime_error("Uncompatible image object");
+  Image *vkImage = reinterpret_cast<Image *>(image);
+  if (!vkImage->isTexture()) throw std::runtime_error("Uncompatible image object");
+
+  VkDescriptorSet sets[1] = { vkImage->getDescriptorSet() };
+  vkCmdBindDescriptorSets(
+      mCommandBuffer,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      mProgram->getLayout(),
+      index,
+      1,
+      sets,
+      0,
+      VK_NULL_HANDLE);
 }
 
 void Context::draw(size_t vertexCount, size_t instanceCount) {
@@ -452,7 +473,7 @@ void Context::createDescriptorSetLayouts() {
     auto binding = VkDescriptorSetLayoutBinding{ .binding            = 0,
                                                  .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                  .descriptorCount    = 1,
-                                                 .stageFlags         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
                                                  .pImmutableSamplers = VK_NULL_HANDLE };
 
     auto createInfo = VkDescriptorSetLayoutCreateInfo{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -473,7 +494,7 @@ void Context::createDescriptorPool() {
 
   auto createInfo = VkDescriptorPoolCreateInfo{ .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                                                 .pNext         = VK_NULL_HANDLE,
-                                                .flags         = 0,
+                                                .flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
                                                 .maxSets       = 1024,
                                                 .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
                                                 .pPoolSizes    = poolSizes.data() };
