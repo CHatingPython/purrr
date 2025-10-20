@@ -1,6 +1,8 @@
-#include "purrr/program.hpp"
 #include "purrr/purrr.hpp"
 #include "purrr/programInfoBuilder.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <stdexcept>
 #include <vector> // IWYU pragma: keep
@@ -54,6 +56,23 @@ int main(void) {
   delete vertexShader;
   delete fragmentShader;
 
+  purrr::Image *image = nullptr;
+
+  {
+    int      width = 0, height = 0;
+    stbi_uc *pixels = stbi_load("./image.png", &width, &height, nullptr, STBI_rgb_alpha);
+
+    image = context->createImage(purrr::ImageInfo{ .width  = static_cast<size_t>(width),
+                                                   .height = static_cast<size_t>(height),
+                                                   .format = purrr::Format::RGBA8Srgb,
+                                                   .tiling = purrr::ImageTiling::Optimal,
+                                                   .usage  = { .texture = true } });
+
+    image->copyData(width, height, width * height * 4, pixels);
+
+    stbi_image_free(pixels);
+  }
+
   double lastTime = context->getTime();
 
   static constexpr float SPEED = 0.1f;
@@ -85,6 +104,7 @@ int main(void) {
 
   context->waitIdle();
 
+  delete image;
   delete program;
   delete indexBuffer;
   delete vertexBuffer;
