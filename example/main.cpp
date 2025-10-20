@@ -12,9 +12,9 @@ struct Vertex {
   float x, y;
 };
 static auto sVertices = std::vector<Vertex>({
-    Vertex{ 0.0f, 0.5f },
-    Vertex{ -0.5f, -0.5f },
-    Vertex{ 0.5f, -0.5f },
+    Vertex{ 0.0f, -0.5f },
+    Vertex{ -0.5f, 0.5f },
+    Vertex{ 0.5f, 0.5f },
 });
 
 std::vector<char> readFile(const char *filepath) {
@@ -74,6 +74,8 @@ int main(void) {
 
     if (context->record(window, { { { HSVtoRGB(hue, 1.0f, 1.0f) } } })) { // Begin recording
       context->useProgram(program);
+      context->useVertexBuffer(vertexBuffer, 0);
+      context->draw(3);
 
       context->end(); // End recording
     }

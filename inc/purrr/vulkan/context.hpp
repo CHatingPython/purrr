@@ -14,6 +14,8 @@
 namespace purrr {
 namespace vulkan {
 
+  VkIndexType vkIndexType(IndexType type);
+
   class Window;
   class Context : public purrr::platform::Context {
   public:
@@ -53,6 +55,9 @@ namespace vulkan {
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
     virtual void useProgram(purrr::Program *program) override;
+    virtual void useVertexBuffer(purrr::Buffer *buffer, uint32_t index) override;
+    virtual void useIndexBuffer(purrr::Buffer *buffer, IndexType type) override;
+    virtual void draw(size_t vertexCount, size_t instanceCount) override;
     virtual void end() override;
     virtual void submit() override;
     virtual void present(bool preventSpinning) override;

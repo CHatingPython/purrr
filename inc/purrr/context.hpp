@@ -41,6 +41,12 @@ struct RecordClear {
   const std::vector<ContextClearValue> &clearValues;
 };
 
+enum class IndexType {
+  U8,
+  U16,
+  U32
+};
+
 class Context : public Object {
 public:
   static Context *create(Api api, const ContextInfo &info = {});
@@ -60,13 +66,16 @@ public:
   virtual Shader *createShader(const ShaderInfo &info = {})                    = 0;
   virtual Shader *createShader(ShaderType type, const std::vector<char> &code) = 0;
 public:
-  virtual void begin()                                          = 0;
-  virtual bool record(Window *window, const RecordClear &clear) = 0;
-  virtual void useProgram(Program *program)                     = 0;
-  virtual void end()                                            = 0;
-  virtual void submit()                                         = 0;
-  virtual void present(bool preventSpinning = true)             = 0;
-  virtual void waitIdle()                                       = 0;
+  virtual void begin()                                            = 0;
+  virtual bool record(Window *window, const RecordClear &clear)   = 0;
+  virtual void useProgram(Program *program)                       = 0;
+  virtual void useVertexBuffer(Buffer *buffer, uint32_t index)    = 0;
+  virtual void useIndexBuffer(Buffer *buffer, IndexType type)     = 0;
+  virtual void draw(size_t vertexCount, size_t instanceCount = 1) = 0;
+  virtual void end()                                              = 0;
+  virtual void submit()                                           = 0;
+  virtual void present(bool preventSpinning = true)               = 0;
+  virtual void waitIdle()                                         = 0;
 };
 
 } // namespace purrr

@@ -6,7 +6,7 @@
 namespace purrr::vulkan {
 
 Buffer::Buffer(Context *context, const BufferInfo &info)
-  : mContext(context) {
+  : mContext(context), mType(info.type) {
   VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   switch (info.type) {
   case BufferType::Vertex: {

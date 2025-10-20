@@ -15,6 +15,16 @@
 
 namespace purrr::vulkan {
 
+VkIndexType vkIndexType(IndexType type) {
+  switch (type) {
+  case IndexType::U8: return VK_INDEX_TYPE_UINT8;
+  case IndexType::U16: return VK_INDEX_TYPE_UINT16;
+  case IndexType::U32: return VK_INDEX_TYPE_UINT32;
+  }
+
+  throw std::runtime_error("Unreachable");
+}
+
 Context::Context(const ContextInfo &info)
   : purrr::platform::Context(info) {
   auto deviceExtensions = std::vector<const char *>({ VK_KHR_SWAPCHAIN_EXTENSION_NAME });
@@ -116,15 +126,57 @@ bool Context::record(purrr::Window *window, const RecordClear &clear) {
 
   vkCmdBeginRenderPass(mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+  auto size = vkWindow->getSize();
+
+  auto viewport = VkViewport{ .x        = 0.0f,
+                              .y        = 0.0f,
+                              .width    = static_cast<float>(size.first),
+                              .height   = static_cast<float>(size.second),
+                              .minDepth = 0.0f,
+                              .maxDepth = 1.0f };
+
+  vkCmdSetViewport(mCommandBuffer, 0, 1, &viewport);
+  vkCmdSetScissor(mCommandBuffer, 0, 1, &renderPassBeginInfo.renderArea);
+
   return true;
 }
 
 void Context::useProgram(purrr::Program *program) {
+  if (!mRecording) throw std::runtime_error("useProgram() called before record()");
+
   if (program->api() != Api::Vulkan) throw std::runtime_error("Uncompatible program object");
   Program *vkProgram = reinterpret_cast<Program *>(program);
   if (!vkProgram->sameWindow(mWindows.back())) throw std::runtime_error("Uncompatible program object");
 
   vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkProgram->getPipeline());
+}
+
+void Context::useVertexBuffer(purrr::Buffer *buffer, uint32_t index) {
+  if (!mRecording) throw std::runtime_error("useVertexBuffer() called before record()");
+
+  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
+  if (vkBuffer->getType() != BufferType::Vertex) throw std::runtime_error("Uncompatible buffer object");
+
+  VkBuffer     buffers[1] = { vkBuffer->getBuffer() };
+  VkDeviceSize offsets[1] = { 0 };
+  vkCmdBindVertexBuffers(mCommandBuffer, index, 1, buffers, offsets);
+}
+
+void Context::useIndexBuffer(purrr::Buffer *buffer, IndexType type) {
+  if (!mRecording) throw std::runtime_error("useIndexBuffer() called before record()");
+
+  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
+  if (vkBuffer->getType() != BufferType::Index) throw std::runtime_error("Uncompatible buffer object");
+
+  vkCmdBindIndexBuffer(mCommandBuffer, vkBuffer->getBuffer(), 0, vkIndexType(type));
+}
+
+void Context::draw(size_t vertexCount, size_t instanceCount) {
+  if (!mRecording) throw std::runtime_error("draw() called before record()");
+
+  vkCmdDraw(mCommandBuffer, static_cast<uint32_t>(vertexCount), static_cast<uint32_t>(instanceCount), 0, 0);
 }
 
 void Context::end() {
