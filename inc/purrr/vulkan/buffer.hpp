@@ -26,9 +26,14 @@ namespace vulkan {
     BufferType     mType    = BufferType::Vertex;
     VkBuffer       mBuffer  = VK_NULL_HANDLE;
     VkDeviceMemory mMemory  = VK_NULL_HANDLE;
-  private:
-    void createBuffer(
-        VkDeviceSize size, VkBufferUsageFlags usage, bool deviceLocal, VkBuffer *buffer, VkDeviceMemory *memory);
+  public:
+    static void createBuffer(
+        Context           *context,
+        VkDeviceSize       size,
+        VkBufferUsageFlags usage,
+        bool               deviceLocal,
+        VkBuffer          *buffer,
+        VkDeviceMemory    *memory);
   };
 
 } // namespace vulkan
