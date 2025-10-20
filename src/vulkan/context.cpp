@@ -179,6 +179,12 @@ void Context::draw(size_t vertexCount, size_t instanceCount) {
   vkCmdDraw(mCommandBuffer, static_cast<uint32_t>(vertexCount), static_cast<uint32_t>(instanceCount), 0, 0);
 }
 
+void Context::drawIndexed(size_t indexCount, size_t instanceCount) {
+  if (!mRecording) throw std::runtime_error("draw() called before record()");
+
+  vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(indexCount), static_cast<uint32_t>(instanceCount), 0, 0, 0);
+}
+
 void Context::end() {
   if (!mRecording) throw std::runtime_error("end() called before record()");
   mRecording = false;

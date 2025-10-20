@@ -58,6 +58,7 @@ namespace vulkan {
     virtual void useVertexBuffer(purrr::Buffer *buffer, uint32_t index) override;
     virtual void useIndexBuffer(purrr::Buffer *buffer, IndexType type) override;
     virtual void draw(size_t vertexCount, size_t instanceCount) override;
+    virtual void drawIndexed(size_t indexCount, size_t instanceCount) override;
     virtual void end() override;
     virtual void submit() override;
     virtual void present(bool preventSpinning) override;
