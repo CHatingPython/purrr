@@ -2,10 +2,11 @@
 #define _PURRR_HPP_
 
 #include "purrr/context.hpp" // IWYU pragma: export
-#include "purrr/window.hpp" // IWYU pragma: export
-#include "purrr/buffer.hpp" // IWYU pragma: export
+#include "purrr/window.hpp"  // IWYU pragma: export
+#include "purrr/buffer.hpp"  // IWYU pragma: export
 #include "purrr/program.hpp" // IWYU pragma: export
-#include "purrr/image.hpp" // IWYU pragma: export
+#include "purrr/sampler.hpp" // IWYU pragma: export
+#include "purrr/image.hpp"   // IWYU pragma: export
 
 namespace purrr {
 
