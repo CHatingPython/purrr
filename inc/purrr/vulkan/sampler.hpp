@@ -10,7 +10,7 @@ namespace vulkan {
   VkFilter vkFilter(Filter filter);
   VkSamplerAddressMode vkSamplerAddressMode(SamplerAddressMode addressMode);
 
-  class Sampler : purrr::Sampler {
+  class Sampler : public purrr::Sampler {
   public:
     Sampler(Context *context, const SamplerInfo &info);
     ~Sampler();

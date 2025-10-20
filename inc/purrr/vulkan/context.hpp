@@ -47,10 +47,11 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
-    virtual purrr::Window *createWindow(const WindowInfo &info) override;
-    virtual purrr::Buffer *createBuffer(const BufferInfo &info) override;
-    virtual purrr::Shader *createShader(const ShaderInfo &info) override;
-    virtual purrr::Image  *createImage(const ImageInfo &info) override;
+    virtual purrr::Window  *createWindow(const WindowInfo &info) override;
+    virtual purrr::Buffer  *createBuffer(const BufferInfo &info) override;
+    virtual purrr::Shader  *createShader(const ShaderInfo &info) override;
+    virtual purrr::Sampler *createSampler(const SamplerInfo &info) override;
+    virtual purrr::Image   *createImage(const ImageInfo &info) override;
   public:
     virtual purrr::Shader *createShader(ShaderType type, const std::vector<char> &code) override;
   public:

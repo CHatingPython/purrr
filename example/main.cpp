@@ -56,6 +56,14 @@ int main(void) {
   delete vertexShader;
   delete fragmentShader;
 
+  purrr::Sampler *sampler =
+      context->createSampler(purrr::SamplerInfo{ .magFilter    = purrr::Filter::Linear,
+                                                 .minFilter    = purrr::Filter::Linear,
+                                                 .mipFilter    = purrr::Filter::Linear,
+                                                 .addressModeU = purrr::SamplerAddressMode::Repeat,
+                                                 .addressModeV = purrr::SamplerAddressMode::Repeat,
+                                                 .addressModeW = purrr::SamplerAddressMode::Repeat });
+
   purrr::Image *image = nullptr;
 
   {
@@ -105,6 +113,7 @@ int main(void) {
   context->waitIdle();
 
   delete image;
+  delete sampler;
   delete program;
   delete indexBuffer;
   delete vertexBuffer;

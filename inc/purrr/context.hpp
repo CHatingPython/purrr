@@ -5,7 +5,9 @@
 #include "purrr/window.hpp"  // IWYU pragma: private
 #include "purrr/buffer.hpp"  // IWYU pragma: private
 #include "purrr/program.hpp" // IWYU pragma: private
+#include "purrr/sampler.hpp" // IWYU pragma: private
 #include "purrr/image.hpp"   // IWYU pragma: private
+
 #include <vector>
 
 namespace purrr {
@@ -62,10 +64,11 @@ public:
   virtual void   waitForWindowEvents() const = 0;
   virtual double getTime() const             = 0;
 public:
-  virtual Window *createWindow(const WindowInfo &info = {}) = 0;
-  virtual Buffer *createBuffer(const BufferInfo &info = {}) = 0;
-  virtual Shader *createShader(const ShaderInfo &info = {}) = 0;
-  virtual Image  *createImage(const ImageInfo &info)        = 0;
+  virtual Window  *createWindow(const WindowInfo &info = {}) = 0;
+  virtual Buffer  *createBuffer(const BufferInfo &info = {}) = 0;
+  virtual Shader  *createShader(const ShaderInfo &info = {}) = 0;
+  virtual Sampler *createSampler(const SamplerInfo &info)    = 0;
+  virtual Image   *createImage(const ImageInfo &info)        = 0;
 public:
   virtual Shader *createShader(ShaderType type, const std::vector<char> &code) = 0;
 public:

@@ -4,6 +4,7 @@
 #include "purrr/vulkan/window.hpp"
 #include "purrr/vulkan/buffer.hpp"
 #include "purrr/vulkan/program.hpp"
+#include "purrr/vulkan/sampler.hpp"
 #include "purrr/vulkan/image.hpp"
 
 #include <cstdint>
@@ -65,6 +66,10 @@ purrr::Buffer *Context::createBuffer(const BufferInfo &info) {
 
 purrr::Shader *Context::createShader(const ShaderInfo &info) {
   return new Shader(this, info);
+}
+
+purrr::Sampler *Context::createSampler(const SamplerInfo &info) {
+  return new Sampler(this, info);
 }
 
 purrr::Image *Context::createImage(const ImageInfo &info) {
