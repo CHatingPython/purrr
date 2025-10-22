@@ -6,6 +6,7 @@
 #include "purrr/vulkan/program.hpp"
 #include "purrr/vulkan/sampler.hpp"
 #include "purrr/vulkan/image.hpp"
+#include "purrr/vulkan/renderTarget.hpp"
 
 #include <cstdint>
 #include <limits>
@@ -74,6 +75,10 @@ purrr::Sampler *Context::createSampler(const SamplerInfo &info) {
 
 purrr::Image *Context::createImage(const ImageInfo &info) {
   return new Image(this, info);
+}
+
+purrr::RenderTarget *Context::createRenderTarget(const RenderTargetInfo &info) {
+  return new RenderTarget(this, info);
 }
 
 purrr::Shader *Context::createShader(ShaderType type, const std::vector<char> &code) {

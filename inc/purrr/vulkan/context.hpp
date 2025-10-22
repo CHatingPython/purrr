@@ -49,16 +49,18 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
-    virtual purrr::Window  *createWindow(const WindowInfo &info) override;
-    virtual purrr::Buffer  *createBuffer(const BufferInfo &info) override;
-    virtual purrr::Shader  *createShader(const ShaderInfo &info) override;
-    virtual purrr::Sampler *createSampler(const SamplerInfo &info) override;
-    virtual purrr::Image   *createImage(const ImageInfo &info) override;
+    virtual purrr::Window       *createWindow(const WindowInfo &info) override;
+    virtual purrr::Buffer       *createBuffer(const BufferInfo &info) override;
+    virtual purrr::Shader       *createShader(const ShaderInfo &info) override;
+    virtual purrr::Sampler      *createSampler(const SamplerInfo &info) override;
+    virtual purrr::Image        *createImage(const ImageInfo &info) override;
+    virtual purrr::RenderTarget *createRenderTarget(const RenderTargetInfo &info) override;
   public:
     virtual purrr::Shader *createShader(ShaderType type, const std::vector<char> &code) override;
   public:
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
+    virtual bool record(purrr::RenderTarget *renderTarget, const RecordClear &clear) override;
     virtual void useProgram(purrr::Program *program) override;
     virtual void useVertexBuffer(purrr::Buffer *buffer, uint32_t index) override;
     virtual void useIndexBuffer(purrr::Buffer *buffer, IndexType type) override;
