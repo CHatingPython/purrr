@@ -1,8 +1,7 @@
 #ifndef _PURRR_WINDOW_HPP_
 #define _PURRR_WINDOW_HPP_
 
-#include "purrr/object.hpp"
-
+#include "purrr/renderTarget.hpp" // IWYU pragma: private
 #include "purrr/program.hpp" // IWYU pragma: private
 
 #include <utility>
@@ -18,7 +17,7 @@ struct WindowInfo {
   int         yPos        = -1;
 };
 
-class Window : public Object {
+class Window : public RenderTarget {
 public:
   Window()          = default;
   virtual ~Window() = default;
@@ -28,7 +27,6 @@ public:
 public:
   virtual Program *createProgram(const ProgramInfo &info) = 0;
 public:
-  virtual std::pair<int, int> getSize() const     = 0;
   virtual std::pair<int, int> getPosition() const = 0;
   virtual bool                shouldClose() const = 0;
 public:
