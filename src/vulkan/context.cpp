@@ -163,6 +163,50 @@ bool Context::record(purrr::Window *window, const RecordClear &clear) {
   return true;
 }
 
+bool Context::record(purrr::RenderTarget *target, const RecordClear &clear) {
+  if (target->api() != api()) return false;
+  // TODO: Introduce InvalidUse exception
+  if (mRecording) throw std::runtime_error("Cannot record before calling end()");
+
+  RenderTarget *vkTarget = reinterpret_cast<RenderTarget *>(target);
+  if (!vkTarget->sameContext(this)) return false;
+
+  mRecording = true;
+
+  auto clearValues = std::vector<VkClearValue>();
+  for (const ContextClearValue &value : clear.clearValues) {
+    clearValues.push_back(*reinterpret_cast<const VkClearValue *>(&value));
+  }
+
+  auto size = vkTarget->getSize();
+
+  auto renderPassBeginInfo =
+      VkRenderPassBeginInfo{ .sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                             .pNext       = VK_NULL_HANDLE,
+                             .renderPass  = vkTarget->getRenderPass(),
+                             .framebuffer = vkTarget->getFramebuffer(),
+                             .renderArea =
+                                 VkRect2D{ .offset = {},
+                                           .extent = VkExtent2D{ .width  = static_cast<uint32_t>(size.first),
+                                                                 .height = static_cast<uint32_t>(size.second) } },
+                             .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+                             .pClearValues    = clearValues.data() };
+
+  vkCmdBeginRenderPass(mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  auto viewport = VkViewport{ .x        = 0.0f,
+                              .y        = 0.0f,
+                              .width    = static_cast<float>(size.first),
+                              .height   = static_cast<float>(size.second),
+                              .minDepth = 0.0f,
+                              .maxDepth = 1.0f };
+
+  vkCmdSetViewport(mCommandBuffer, 0, 1, &viewport);
+  vkCmdSetScissor(mCommandBuffer, 0, 1, &renderPassBeginInfo.renderArea);
+
+  return true;
+}
+
 void Context::useProgram(purrr::Program *program) {
   if (!mRecording) throw std::runtime_error("useProgram() called before record()");
 

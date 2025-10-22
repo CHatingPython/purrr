@@ -1,12 +1,13 @@
 #ifndef _PURRR_CONTEXT_HPP_
 #define _PURRR_CONTEXT_HPP_
 
-#include "purrr/object.hpp"  // IWYU pragma: private
-#include "purrr/window.hpp"  // IWYU pragma: private
-#include "purrr/buffer.hpp"  // IWYU pragma: private
-#include "purrr/program.hpp" // IWYU pragma: private
-#include "purrr/sampler.hpp" // IWYU pragma: private
-#include "purrr/image.hpp"   // IWYU pragma: private
+#include "purrr/object.hpp"       // IWYU pragma: private
+#include "purrr/window.hpp"       // IWYU pragma: private
+#include "purrr/buffer.hpp"       // IWYU pragma: private
+#include "purrr/program.hpp"      // IWYU pragma: private
+#include "purrr/sampler.hpp"      // IWYU pragma: private
+#include "purrr/image.hpp"        // IWYU pragma: private
+#include "purrr/renderTarget.hpp" // IWYU pragma: private
 
 #include <vector>
 
@@ -64,26 +65,28 @@ public:
   virtual void   waitForWindowEvents() const = 0;
   virtual double getTime() const             = 0;
 public:
-  virtual Window  *createWindow(const WindowInfo &info = {}) = 0;
-  virtual Buffer  *createBuffer(const BufferInfo &info = {}) = 0;
-  virtual Shader  *createShader(const ShaderInfo &info = {}) = 0;
-  virtual Sampler *createSampler(const SamplerInfo &info)    = 0;
-  virtual Image   *createImage(const ImageInfo &info)        = 0;
+  virtual Window       *createWindow(const WindowInfo &info = {})        = 0;
+  virtual Buffer       *createBuffer(const BufferInfo &info = {})        = 0;
+  virtual Shader       *createShader(const ShaderInfo &info = {})        = 0;
+  virtual Sampler      *createSampler(const SamplerInfo &info)           = 0;
+  virtual Image        *createImage(const ImageInfo &info)               = 0;
+  virtual RenderTarget *createRenderTarget(const RenderTargetInfo &info) = 0;
 public:
   virtual Shader *createShader(ShaderType type, const std::vector<char> &code) = 0;
 public:
-  virtual void begin()                                                  = 0;
-  virtual bool record(Window *window, const RecordClear &clear)         = 0;
-  virtual void useProgram(Program *program)                             = 0;
-  virtual void useVertexBuffer(Buffer *buffer, uint32_t index)          = 0;
-  virtual void useIndexBuffer(Buffer *buffer, IndexType type)           = 0;
-  virtual void useTextureImage(Image *image, uint32_t index)            = 0;
-  virtual void draw(size_t vertexCount, size_t instanceCount = 1)       = 0;
-  virtual void drawIndexed(size_t indexCount, size_t instanceCount = 1) = 0;
-  virtual void end()                                                    = 0;
-  virtual void submit()                                                 = 0;
-  virtual void present(bool preventSpinning = true)                     = 0;
-  virtual void waitIdle()                                               = 0;
+  virtual void begin()                                                      = 0;
+  virtual bool record(Window *window, const RecordClear &clear)             = 0;
+  virtual bool record(RenderTarget *renderTarget, const RecordClear &clear) = 0;
+  virtual void useProgram(Program *program)                                 = 0;
+  virtual void useVertexBuffer(Buffer *buffer, uint32_t index)              = 0;
+  virtual void useIndexBuffer(Buffer *buffer, IndexType type)               = 0;
+  virtual void useTextureImage(Image *image, uint32_t index)                = 0;
+  virtual void draw(size_t vertexCount, size_t instanceCount = 1)           = 0;
+  virtual void drawIndexed(size_t indexCount, size_t instanceCount = 1)     = 0;
+  virtual void end()                                                        = 0;
+  virtual void submit()                                                     = 0;
+  virtual void present(bool preventSpinning = true)                         = 0;
+  virtual void waitIdle()                                                   = 0;
 };
 
 } // namespace purrr
