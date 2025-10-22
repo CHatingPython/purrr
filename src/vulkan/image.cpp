@@ -20,7 +20,7 @@ VkImageTiling vkImageTiling(ImageTiling tiling) {
 }
 
 Image::Image(Context *context, const ImageInfo &info)
-  : mContext(context), mIsTexture(info.usage.texture) {
+  : mContext(context), mUsage(info.usage) {
   createImage(info);
   allocateMemory();
   createImageView(info);

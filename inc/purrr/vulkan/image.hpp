@@ -23,7 +23,7 @@ namespace vulkan {
     VkImageView     getImageView() const { return mImageView; }
     VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
   public:
-    bool isTexture() const { return mIsTexture; }
+    ImageInfo::Usage getUsage() const { return mUsage; }
   private:
     Context        *mContext       = nullptr;
     Format          mFormat        = Format::Undefined;
@@ -32,7 +32,7 @@ namespace vulkan {
     VkImageView     mImageView     = VK_NULL_HANDLE;
     VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
   private:
-    bool mIsTexture = false;
+    ImageInfo::Usage mUsage;
   private:
     VkImageLayout        mLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkPipelineStageFlags mStage  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;

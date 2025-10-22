@@ -16,7 +16,7 @@ struct ImageInfo {
   size_t      width, height;
   Format      format;
   ImageTiling tiling;
-  struct {
+  struct Usage {
     uint8_t texture : 1;
     uint8_t renderTarget : 1;
   } usage;

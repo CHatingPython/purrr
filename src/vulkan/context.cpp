@@ -197,7 +197,7 @@ void Context::useTextureImage(purrr::Image *image, uint32_t index) {
 
   if (image->api() != Api::Vulkan) throw std::runtime_error("Uncompatible image object");
   Image *vkImage = reinterpret_cast<Image *>(image);
-  if (!vkImage->isTexture()) throw std::runtime_error("Uncompatible image object");
+  if (!vkImage->getUsage().texture) throw std::runtime_error("Uncompatible image object");
 
   VkDescriptorSet sets[1] = { vkImage->getDescriptorSet() };
   vkCmdBindDescriptorSets(
