@@ -3,11 +3,21 @@
 
 #include <stdexcept>
 
+#include <windowsx.h>
+
 namespace purrr::win32 {
 
 Window::Window(Context *context, const WindowInfo &info)
   : mContext(context) {
   createWindow(info);
+  fetchPositionAndSize();
+
+  {
+    auto position = POINT{};
+    GetCursorPos(&position);
+    mCursorX = position.x;
+    mCursorY = position.y;
+  }
 }
 
 Window::~Window() {
@@ -15,7 +25,7 @@ Window::~Window() {
 }
 
 void Window::setSize(const std::pair<int, int> &size) {
-  RECT rect = { 0, 0, size.first, size.second };
+  auto rect = RECT{ 0, 0, size.first, size.second };
 
   AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
 
@@ -30,16 +40,21 @@ void Window::setSize(const std::pair<int, int> &size) {
 }
 
 void Window::setPosition(const std::pair<int, int> &position) {
-  RECT rect = { position.first, position.second, 0, 0 };
+  auto rect = RECT{ position.first, position.second, 0, 0 };
   AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
   SetWindowPos(mWindowHandle, HWND_TOP, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER);
+}
+
+void Window::setCursorPosition(const std::pair<int, int> &position) {
+  auto point = POINT{ .x = mCursorX = position.first, .y = mCursorY = position.second };
+  ClientToScreen(mWindowHandle, &point);
 }
 
 void Window::createWindow(const WindowInfo &info) {
   mStyle   = WS_OVERLAPPEDWINDOW;
   mExStyle = WS_EX_OVERLAPPEDWINDOW;
 
-  RECT rect = { 0, 0, info.width, info.height };
+  auto rect = RECT{ 0, 0, info.width, info.height };
   ::AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
 
   int xPos = (info.xPos < 0) ? CW_USEDEFAULT : (info.xPos + rect.left);
@@ -71,26 +86,24 @@ void Window::createWindow(const WindowInfo &info) {
 
   SetWindowLongPtr(mWindowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
   ShowWindow(mWindowHandle, SW_SHOW);
-
-  fetchPositionAndSize();
 }
 
 LPWSTR Window::lpcstrToLpwstr(LPCSTR cstr) {
   int length = MultiByteToWideChar(CP_UTF8, 0, cstr, -1, nullptr, 0);
 
-  LPWSTR wstr = new WCHAR[length];
+  auto wstr = new WCHAR[length];
   MultiByteToWideChar(CP_UTF8, 0, cstr, -1, wstr, length);
   wstr[length - 1] = L'\0';
   return wstr;
 }
 
 void Window::fetchPositionAndSize() {
-  POINT pos = {};
+  auto pos = POINT{};
   ClientToScreen(mWindowHandle, &pos);
   mXPos = pos.x;
   mYPos = pos.y;
 
-  RECT area = {};
+  auto area = RECT{};
   GetClientRect(mWindowHandle, &area);
   mWidth  = area.right;
   mHeight = area.bottom;
@@ -113,6 +126,11 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
   case WM_SIZE: {
     window->mWidth  = LOWORD(lParam);
     window->mHeight = HIWORD(lParam);
+    return 0;
+  }
+  case WM_MOUSEMOVE: {
+    window->mCursorX = GET_X_LPARAM(lParam);
+    window->mCursorY = GET_Y_LPARAM(lParam);
     return 0;
   }
   default: return DefWindowProcW(windowHandle, msg, wParam, lParam);
