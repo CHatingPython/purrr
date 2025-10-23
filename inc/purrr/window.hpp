@@ -17,6 +17,16 @@ struct WindowInfo {
   int         yPos        = -1;
 };
 
+using MouseButton = uint8_t;
+struct MouseButtons {
+  static constexpr size_t Left   = 0;
+  static constexpr size_t Right  = 1;
+  static constexpr size_t Middle = 2;
+  static constexpr size_t X1     = 3;
+  static constexpr size_t X2     = 4;
+  static constexpr size_t COUNT  = 5;
+};
+
 class Window : public RenderTarget {
 public:
   Window()          = default;
@@ -29,7 +39,10 @@ public:
 public:
   virtual std::pair<int, int> getPosition() const       = 0;
   virtual std::pair<int, int> getCursorPosition() const = 0;
-  virtual bool                shouldClose() const       = 0;
+public:
+  virtual bool isMouseButtonDown(MouseButton btn) const = 0;
+  virtual bool isMouseButtonUp(MouseButton btn) const   = 0;
+  virtual bool shouldClose() const                      = 0;
 public:
   virtual void setSize(const std::pair<int, int> &size)               = 0;
   virtual void setPosition(const std::pair<int, int> &position)       = 0;
