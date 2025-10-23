@@ -133,6 +133,38 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     window->mCursorY = GET_Y_LPARAM(lParam);
     return 0;
   }
+  case WM_LBUTTONDOWN: {
+    window->mMouseButtons |= (1 << MouseButtons::Left);
+    return TRUE;
+  }
+  case WM_RBUTTONDOWN: {
+    window->mMouseButtons |= (1 << MouseButtons::Right);
+    return TRUE;
+  }
+  case WM_MBUTTONDOWN: {
+    window->mMouseButtons |= (1 << MouseButtons::Middle);
+    return TRUE;
+  }
+  case WM_XBUTTONDOWN: {
+    window->mMouseButtons |= (1 << ((lParam == 2) ? MouseButtons::X2 : MouseButtons::X1));
+    return TRUE;
+  }
+  case WM_LBUTTONUP: {
+    window->mMouseButtons &= ~(1 << MouseButtons::Left);
+    return TRUE;
+  }
+  case WM_RBUTTONUP: {
+    window->mMouseButtons &= ~(1 << MouseButtons::Right);
+    return TRUE;
+  }
+  case WM_MBUTTONUP: {
+    window->mMouseButtons &= ~(1 << MouseButtons::Middle);
+    return TRUE;
+  }
+  case WM_XBUTTONUP: {
+    window->mMouseButtons &= ~(1 << ((lParam == 2) ? MouseButtons::X2 : MouseButtons::X1));
+    return TRUE;
+  }
   default: return DefWindowProcW(windowHandle, msg, wParam, lParam);
   }
 }
