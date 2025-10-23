@@ -2,7 +2,7 @@
 #define _PURRR_WINDOW_HPP_
 
 #include "purrr/renderTarget.hpp" // IWYU pragma: private
-#include "purrr/program.hpp" // IWYU pragma: private
+#include "purrr/program.hpp"      // IWYU pragma: private
 
 #include <utility>
 
@@ -27,12 +27,14 @@ public:
 public:
   virtual Program *createProgram(const ProgramInfo &info) = 0;
 public:
-  virtual std::pair<int, int> getPosition() const = 0;
-  virtual bool                shouldClose() const = 0;
+  virtual std::pair<int, int> getPosition() const       = 0;
+  virtual std::pair<int, int> getCursorPosition() const = 0;
+  virtual bool                shouldClose() const       = 0;
 public:
-  virtual void setSize(const std::pair<int, int> &size)         = 0;
-  virtual void setPosition(const std::pair<int, int> &position) = 0;
-  virtual void shouldClose(bool shouldClose)                    = 0;
+  virtual void setSize(const std::pair<int, int> &size)               = 0;
+  virtual void setPosition(const std::pair<int, int> &position)       = 0;
+  virtual void setCursorPosition(const std::pair<int, int> &position) = 0;
+  virtual void shouldClose(bool shouldClose)                          = 0;
 };
 
 } // namespace purrr
