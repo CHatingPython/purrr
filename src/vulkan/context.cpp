@@ -45,6 +45,10 @@ Context::Context(const ContextInfo &info)
 }
 
 Context::~Context() {
+  if (mStorageDescriptorSetLayout != VK_NULL_HANDLE)
+    vkDestroyDescriptorSetLayout(mDevice, mStorageDescriptorSetLayout, VK_NULL_HANDLE);
+  if (mUniformDescriptorSetLayout != VK_NULL_HANDLE)
+    vkDestroyDescriptorSetLayout(mDevice, mUniformDescriptorSetLayout, VK_NULL_HANDLE);
   if (mTextureDescriptorSetLayout != VK_NULL_HANDLE)
     vkDestroyDescriptorSetLayout(mDevice, mTextureDescriptorSetLayout, VK_NULL_HANDLE);
   if (mDescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(mDevice, mDescriptorPool, VK_NULL_HANDLE);
