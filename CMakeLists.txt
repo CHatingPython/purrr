@@ -15,7 +15,7 @@ target_include_directories(purrr
   PRIVATE src/
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
-    $<INSTALL_INTERFACE:inc>)
+    $<INSTALL_INTERFACE:include>)
 target_link_libraries(purrr Vulkan::Vulkan)
 
 target_compile_definitions(purrr PRIVATE _PURRR_PLATFORM=win32 _PURRR_BACKEND_VULKAN)
@@ -41,7 +41,7 @@ install(TARGETS purrr
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES DESTINATION inc
+  INCLUDES DESTINATION include
 )
 
 install(DIRECTORY inc/ DESTINATION include)
