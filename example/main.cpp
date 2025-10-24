@@ -4,6 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <iostream>
 #include <stdexcept>
 #include <vector> // IWYU pragma: keep
 #include <fstream>
@@ -83,28 +84,29 @@ int main(void) {
                                 .setCullMode(purrr::CullMode::Back)
                                 .setFrontFace(purrr::FrontFace::Clockwise)
                                 .setTopology(purrr::Topology::TriangleList)
-                                .addSlot(purrr::ProgramSlot::Texture)
+                                .addSlot(purrr::ProgramSlot::UniformBuffer)
                                 .build());
 
   delete vertexShader;
   delete fragmentShader;
 
-  double lastTime = context->getTime();
+  purrr::Buffer *ubo = context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Uniform, sizeof(float) });
 
   static constexpr float SPEED = 0.1f;
 
   while (!window->shouldClose()) { // Windows passed to `record` MUST NOT be destroyed before `present`
     context->pollWindowEvents();
 
-    double time = context->getTime();
-
     context->begin(); // Wait and begin a command buffer
+
+    float time = static_cast<float>(context->getTime());
+    ubo->copy(&time, 0, sizeof(time));
 
     if (context->record(window, { { { 0.0f, 0.0f, 0.0f, 1.0f } } })) { // Begin recording
       context->useProgram(program);
       context->useVertexBuffer(vertexBuffer, 0);
       context->useIndexBuffer(indexBuffer, purrr::IndexType::U32);
-      context->useTextureImage(image, 0);
+      context->useUniformBuffer(ubo, 0);
       context->drawIndexed(6); // Draw a full-screen square
 
       context->end(); // End recording
@@ -115,12 +117,11 @@ int main(void) {
     // If every `record` call returned false and every window passed to `record` is minimized, present
     // will wait on window events. This behaviour can be disabled by passing false.
     context->present();
-
-    lastTime = time;
   }
 
   context->waitIdle();
 
+  delete ubo;
   delete image;
   delete sampler;
   delete program;
