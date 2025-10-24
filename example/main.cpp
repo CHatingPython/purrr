@@ -1,9 +1,6 @@
 #include "purrr/purrr.hpp"
 #include "purrr/programInfoBuilder.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include <iostream>
 #include <stdexcept>
 #include <vector> // IWYU pragma: keep
@@ -51,25 +48,7 @@ int main(void) {
                                                  .addressModeV = purrr::SamplerAddressMode::Repeat,
                                                  .addressModeW = purrr::SamplerAddressMode::Repeat });
 
-  purrr::Image *image = nullptr;
-
-  int width = 0, height = 0;
-  {
-    stbi_uc *pixels = stbi_load("./image.png", &width, &height, nullptr, STBI_rgb_alpha);
-
-    image = context->createImage(purrr::ImageInfo{ .width   = static_cast<size_t>(width),
-                                                   .height  = static_cast<size_t>(height),
-                                                   .format  = purrr::Format::RGBA8Srgb,
-                                                   .tiling  = purrr::ImageTiling::Optimal,
-                                                   .usage   = { .texture = true },
-                                                   .sampler = sampler });
-
-    image->copyData(width, height, width * height * 4, pixels);
-
-    stbi_image_free(pixels);
-  }
-
-  purrr::Window *window = context->createWindow(purrr::WindowInfo{ width, height, "purrr example" });
+  purrr::Window *window = context->createWindow(purrr::WindowInfo{ 1000, 1000, "purrr example" });
 
   purrr::Shader *vertexShader   = context->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
   purrr::Shader *fragmentShader = context->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
@@ -122,7 +101,6 @@ int main(void) {
   context->waitIdle();
 
   delete ubo;
-  delete image;
   delete sampler;
   delete program;
   delete indexBuffer;
