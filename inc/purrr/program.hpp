@@ -67,7 +67,9 @@ enum class FrontFace {
 
 // I had no better name in mind
 enum class ProgramSlot {
-  Texture
+  Texture,
+  UniformBuffer,
+  StorageBuffer
 };
 
 struct ProgramInfo {
