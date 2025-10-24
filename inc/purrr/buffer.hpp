@@ -6,7 +6,9 @@ namespace purrr {
 
 enum class BufferType {
   Vertex,
-  Index
+  Index,
+  Uniform,
+  Storage
 };
 
 struct BufferInfo {
