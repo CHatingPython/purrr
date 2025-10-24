@@ -240,6 +240,44 @@ void Context::useIndexBuffer(purrr::Buffer *buffer, IndexType type) {
   vkCmdBindIndexBuffer(mCommandBuffer, vkBuffer->getBuffer(), 0, vkIndexType(type));
 }
 
+void Context::useUniformBuffer(purrr::Buffer *buffer, uint32_t index) {
+  if (!mRecording) throw std::runtime_error("useUniformBuffer() called before record()");
+
+  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
+  if (vkBuffer->getType() != BufferType::Uniform) throw std::runtime_error("Uncompatible buffer object");
+
+  VkDescriptorSet sets[1] = { vkBuffer->getDescriptorSet() };
+  vkCmdBindDescriptorSets(
+      mCommandBuffer,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      mProgram->getLayout(),
+      index,
+      1,
+      sets,
+      0,
+      VK_NULL_HANDLE);
+}
+
+void Context::useStorageBuffer(purrr::Buffer *buffer, uint32_t index) {
+  if (!mRecording) throw std::runtime_error("useStorageBuffer() called before record()");
+
+  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
+  if (vkBuffer->getType() != BufferType::Storage) throw std::runtime_error("Uncompatible buffer object");
+
+  VkDescriptorSet sets[1] = { vkBuffer->getDescriptorSet() };
+  vkCmdBindDescriptorSets(
+      mCommandBuffer,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      mProgram->getLayout(),
+      index,
+      1,
+      sets,
+      0,
+      VK_NULL_HANDLE);
+}
+
 void Context::useTextureImage(purrr::Image *image, uint32_t index) {
   if (!mRecording) throw std::runtime_error("useTextureImage() called before record()");
   if (!mProgram) throw std::runtime_error("useTextureImage() called before useProgram()");
@@ -535,11 +573,51 @@ void Context::createDescriptorSetLayouts() {
         "Descriptor set layout creation",
         vkCreateDescriptorSetLayout(mDevice, &createInfo, VK_NULL_HANDLE, &mTextureDescriptorSetLayout));
   }
+
+  { // Uniform
+    auto binding =
+        VkDescriptorSetLayoutBinding{ .binding            = 0,
+                                      .descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                      .descriptorCount    = 1,
+                                      .stageFlags         = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                      .pImmutableSamplers = VK_NULL_HANDLE };
+
+    auto createInfo = VkDescriptorSetLayoutCreateInfo{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                                                       .pNext = VK_NULL_HANDLE,
+                                                       .flags = 0,
+                                                       .bindingCount = 1,
+                                                       .pBindings    = &binding };
+
+    expectResult(
+        "Descriptor set layout creation",
+        vkCreateDescriptorSetLayout(mDevice, &createInfo, VK_NULL_HANDLE, &mUniformDescriptorSetLayout));
+  }
+
+  { // Storage
+    auto binding =
+        VkDescriptorSetLayoutBinding{ .binding            = 0,
+                                      .descriptorType     = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                                      .descriptorCount    = 1,
+                                      .stageFlags         = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                      .pImmutableSamplers = VK_NULL_HANDLE };
+
+    auto createInfo = VkDescriptorSetLayoutCreateInfo{ .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                                                       .pNext = VK_NULL_HANDLE,
+                                                       .flags = 0,
+                                                       .bindingCount = 1,
+                                                       .pBindings    = &binding };
+
+    expectResult(
+        "Descriptor set layout creation",
+        vkCreateDescriptorSetLayout(mDevice, &createInfo, VK_NULL_HANDLE, &mStorageDescriptorSetLayout));
+  }
 }
 
 void Context::createDescriptorPool() {
-  auto poolSizes = std::array<VkDescriptorPoolSize, 1>(
-      { VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1024 } });
+  auto poolSizes = std::array<VkDescriptorPoolSize, 3>(
+      { VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1024 },
+        VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 1024 },
+        VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1024 } });
 
   auto createInfo = VkDescriptorPoolCreateInfo{ .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                                                 .pNext         = VK_NULL_HANDLE,

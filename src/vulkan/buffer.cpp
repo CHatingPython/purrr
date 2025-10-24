@@ -6,8 +6,12 @@
 namespace purrr::vulkan {
 
 Buffer::Buffer(Context *context, const BufferInfo &info)
-  : mContext(context), mType(info.type) {
+  : mContext(context), mSize(info.size), mType(info.type) {
   VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+  VkDescriptorType      descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  VkDescriptorSetLayout layout         = VK_NULL_HANDLE;
+
   switch (info.type) {
   case BufferType::Vertex: {
     usage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -15,12 +19,26 @@ Buffer::Buffer(Context *context, const BufferInfo &info)
   case BufferType::Index: {
     usage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   } break;
+  case BufferType::Uniform: {
+    usage         |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layout         = mContext->getUniformDescriptorSetLayout();
+  } break;
+  case BufferType::Storage: {
+    usage         |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    layout         = mContext->getStorageDescriptorSetLayout();
+  } break;
   }
 
   createBuffer(mContext, info.size, usage, true, &mBuffer, &mMemory);
+  if (layout != VK_NULL_HANDLE) {
+    allocateDescriptorSet(descriptorType, layout);
+  }
 }
 
 Buffer::~Buffer() {
+  if (mDescriptorSet) vkFreeDescriptorSets(mContext->getDevice(), mContext->getDescriptorPool(), 1, &mDescriptorSet);
   if (mMemory) vkFreeMemory(mContext->getDevice(), mMemory, VK_NULL_HANDLE);
   if (mBuffer) vkDestroyBuffer(mContext->getDevice(), mBuffer, VK_NULL_HANDLE);
 }
@@ -44,6 +62,35 @@ void Buffer::copy(void *data, size_t offset, size_t size) {
 
   vkFreeMemory(mContext->getDevice(), stagingMemory, VK_NULL_HANDLE);
   vkDestroyBuffer(mContext->getDevice(), stagingBuffer, VK_NULL_HANDLE);
+}
+
+void Buffer::allocateDescriptorSet(VkDescriptorType type, VkDescriptorSetLayout layout) {
+  auto allocateInfo = VkDescriptorSetAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                                                   .pNext              = VK_NULL_HANDLE,
+                                                   .descriptorPool     = mContext->getDescriptorPool(),
+                                                   .descriptorSetCount = 1,
+                                                   .pSetLayouts        = &layout };
+
+  expectResult(
+      "Descriptor set allocation",
+      vkAllocateDescriptorSets(mContext->getDevice(), &allocateInfo, &mDescriptorSet));
+
+  auto bufferInfo = VkDescriptorBufferInfo{ .buffer = mBuffer, .offset = 0, .range = mSize };
+
+  auto write = VkWriteDescriptorSet{
+    .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .pNext            = VK_NULL_HANDLE,
+    .dstSet           = mDescriptorSet,
+    .dstBinding       = 0,
+    .dstArrayElement  = 0,
+    .descriptorCount  = 1,
+    .descriptorType   = type,
+    .pImageInfo       = VK_NULL_HANDLE,
+    .pBufferInfo      = &bufferInfo,
+    .pTexelBufferView = VK_NULL_HANDLE,
+  };
+
+  vkUpdateDescriptorSets(mContext->getDevice(), 1, &write, 0, VK_NULL_HANDLE);
 }
 
 void Buffer::createBuffer(

@@ -18,14 +18,19 @@ namespace vulkan {
   public:
     virtual void copy(void *data, size_t offset, size_t size) override;
   public:
-    BufferType     getType() const { return mType; }
-    VkBuffer       getBuffer() const { return mBuffer; }
-    VkDeviceMemory getMemory() const { return mMemory; }
+    BufferType      getType() const { return mType; }
+    VkBuffer        getBuffer() const { return mBuffer; }
+    VkDeviceMemory  getMemory() const { return mMemory; }
+    VkDescriptorSet getDescriptorSet() const { return mDescriptorSet; }
   private:
-    Context       *mContext = nullptr;
-    BufferType     mType    = BufferType::Vertex;
-    VkBuffer       mBuffer  = VK_NULL_HANDLE;
-    VkDeviceMemory mMemory  = VK_NULL_HANDLE;
+    Context        *mContext       = nullptr;
+    size_t          mSize          = 0;
+    BufferType      mType          = BufferType::Vertex;
+    VkBuffer        mBuffer        = VK_NULL_HANDLE;
+    VkDeviceMemory  mMemory        = VK_NULL_HANDLE;
+    VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
+  private:
+    void allocateDescriptorSet(VkDescriptorType type, VkDescriptorSetLayout layout);
   public:
     static void createBuffer(
         Context           *context,

@@ -64,7 +64,9 @@ namespace vulkan {
     virtual void useProgram(purrr::Program *program) override;
     virtual void useVertexBuffer(purrr::Buffer *buffer, uint32_t index) override;
     virtual void useIndexBuffer(purrr::Buffer *buffer, IndexType type) override;
-    virtual void useTextureImage(Image *image, uint32_t index) override;
+    virtual void useUniformBuffer(purrr::Buffer *buffer, uint32_t index) override;
+    virtual void useStorageBuffer(purrr::Buffer *buffer, uint32_t index) override;
+    virtual void useTextureImage(purrr::Image *image, uint32_t index) override;
     virtual void draw(size_t vertexCount, size_t instanceCount) override;
     virtual void drawIndexed(size_t indexCount, size_t instanceCount) override;
     virtual void end() override;
@@ -81,6 +83,8 @@ namespace vulkan {
     VkCommandBuffer  getCommandBuffer() const { return mCommandBuffer; }
   public:
     VkDescriptorSetLayout getTextureDescriptorSetLayout() const { return mTextureDescriptorSetLayout; }
+    VkDescriptorSetLayout getUniformDescriptorSetLayout() const { return mUniformDescriptorSetLayout; }
+    VkDescriptorSetLayout getStorageDescriptorSetLayout() const { return mStorageDescriptorSetLayout; }
     VkDescriptorPool      getDescriptorPool() const { return mDescriptorPool; }
   private:
     VkInstance       mInstance         = VK_NULL_HANDLE;
@@ -93,6 +97,8 @@ namespace vulkan {
     VkFence          mFence            = VK_NULL_HANDLE;
   private:
     VkDescriptorSetLayout mTextureDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorSetLayout mUniformDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorSetLayout mStorageDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool      mDescriptorPool             = VK_NULL_HANDLE;
   private: // Recorded windows
     std::vector<Window *>       mWindows          = {};
