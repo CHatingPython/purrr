@@ -96,6 +96,12 @@ void Program::createLayout(const ProgramInfo &info) {
     case ProgramSlot::Texture: {
       layouts[i] = mContext->getTextureDescriptorSetLayout();
     } break;
+    case ProgramSlot::UniformBuffer: {
+      layouts[i] = mContext->getUniformDescriptorSetLayout();
+    } break;
+    case ProgramSlot::StorageBuffer: {
+      layouts[i] = mContext->getStorageDescriptorSetLayout();
+    } break;
     }
   }
 
