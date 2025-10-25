@@ -134,35 +134,35 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     return 0;
   }
   case WM_LBUTTONDOWN: {
-    window->mMouseButtons |= (1 << MouseButtons::Left);
+    window->mMouseButtons[(size_t)MouseButton::Left] = true;
     return TRUE;
   }
   case WM_RBUTTONDOWN: {
-    window->mMouseButtons |= (1 << MouseButtons::Right);
+    window->mMouseButtons[(size_t)MouseButton::Right] = true;
     return TRUE;
   }
   case WM_MBUTTONDOWN: {
-    window->mMouseButtons |= (1 << MouseButtons::Middle);
+    window->mMouseButtons[(size_t)MouseButton::Middle] = true;
     return TRUE;
   }
   case WM_XBUTTONDOWN: {
-    window->mMouseButtons |= (1 << ((lParam == 2) ? MouseButtons::X2 : MouseButtons::X1));
+    window->mMouseButtons[(size_t)((lParam == 2) ? MouseButton::X2 : MouseButton::X1)] = true;
     return TRUE;
   }
   case WM_LBUTTONUP: {
-    window->mMouseButtons &= ~(1 << MouseButtons::Left);
+    window->mMouseButtons[(size_t)MouseButton::Left] = false;
     return TRUE;
   }
   case WM_RBUTTONUP: {
-    window->mMouseButtons &= ~(1 << MouseButtons::Right);
+    window->mMouseButtons[(size_t)MouseButton::Right] = false;
     return TRUE;
   }
   case WM_MBUTTONUP: {
-    window->mMouseButtons &= ~(1 << MouseButtons::Middle);
+    window->mMouseButtons[(size_t)MouseButton::Middle] = false;
     return TRUE;
   }
   case WM_XBUTTONUP: {
-    window->mMouseButtons &= ~(1 << ((lParam == 2) ? MouseButtons::X2 : MouseButtons::X1));
+    window->mMouseButtons[(size_t)((lParam == 2) ? MouseButton::X2 : MouseButton::X1)] = false;
     return TRUE;
   }
   case WM_KEYDOWN:
