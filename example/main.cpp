@@ -81,6 +81,10 @@ int main(void) {
     float time = static_cast<float>(context->getTime());
     ubo->copy(&time, 0, sizeof(time));
 
+    if (window->isKeyDown(purrr::KeyCode::W)) {
+      std::cout << "W IS DOWN!!!!\n";
+    }
+
     if (context->record(window, { { { 0.0f, 0.0f, 0.0f, 1.0f } } })) { // Begin recording
       context->useProgram(program);
       context->useVertexBuffer(vertexBuffer, 0);
