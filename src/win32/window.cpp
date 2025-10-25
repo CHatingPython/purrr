@@ -115,7 +115,7 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
 
   switch (msg) {
   case WM_CLOSE: {
-    window->mShouldClose = true;
+    window->inputShouldClose();
     return 0;
   }
   case WM_MOVE: {
@@ -134,35 +134,35 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     return 0;
   }
   case WM_LBUTTONDOWN: {
-    window->mMouseButtons[(size_t)MouseButton::Left] = true;
+    window->inputMouseButton(MouseButton::Left, true);
     return TRUE;
   }
   case WM_RBUTTONDOWN: {
-    window->mMouseButtons[(size_t)MouseButton::Right] = true;
+    window->inputMouseButton(MouseButton::Right, true);
     return TRUE;
   }
   case WM_MBUTTONDOWN: {
-    window->mMouseButtons[(size_t)MouseButton::Middle] = true;
+    window->inputMouseButton(MouseButton::Middle, true);
     return TRUE;
   }
   case WM_XBUTTONDOWN: {
-    window->mMouseButtons[(size_t)((lParam == 2) ? MouseButton::X2 : MouseButton::X1)] = true;
+    window->inputMouseButton(((lParam == 2) ? MouseButton::X2 : MouseButton::X1), true);
     return TRUE;
   }
   case WM_LBUTTONUP: {
-    window->mMouseButtons[(size_t)MouseButton::Left] = false;
+    window->inputMouseButton(MouseButton::Left, false);
     return TRUE;
   }
   case WM_RBUTTONUP: {
-    window->mMouseButtons[(size_t)MouseButton::Right] = false;
+    window->inputMouseButton(MouseButton::Right, false);
     return TRUE;
   }
   case WM_MBUTTONUP: {
-    window->mMouseButtons[(size_t)MouseButton::Middle] = false;
+    window->inputMouseButton(MouseButton::Middle, false);
     return TRUE;
   }
   case WM_XBUTTONUP: {
-    window->mMouseButtons[(size_t)((lParam == 2) ? MouseButton::X2 : MouseButton::X1)] = false;
+    window->inputMouseButton(((lParam == 2) ? MouseButton::X2 : MouseButton::X1), false);
     return TRUE;
   }
   case WM_KEYDOWN:
@@ -206,7 +206,7 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     if (wParam == VK_SNAPSHOT) {
       // Press and release
     } else {
-      window->mKeys[(size_t)keyCode] = !released;
+      window->inputKey(keyCode, !released);
     }
 
     return 0;

@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "purrr/window.hpp"
+#include "purrr/event.hpp"
 
 namespace purrr {
 namespace win32 {
