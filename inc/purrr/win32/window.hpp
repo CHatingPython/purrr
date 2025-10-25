@@ -3,6 +3,7 @@
 
 #include "purrr/window.hpp"
 
+#include <bitset>
 #include <utility>
 
 #include <Windows.h>
@@ -44,6 +45,8 @@ namespace win32 {
   public:
     virtual bool isMouseButtonDown(MouseButton btn) const override { return mMouseButtons & (1 << btn); }
     virtual bool isMouseButtonUp(MouseButton btn) const override { return !(mMouseButtons & (1 << btn)); }
+    virtual bool isKeyDown(KeyCode keyCode) const override { return mKeys[(size_t)keyCode]; }
+    virtual bool isKeyUp(KeyCode keyCode) const override { return !mKeys[(size_t)keyCode]; }
     virtual bool shouldClose() const override { return mShouldClose; }
   public:
     virtual void setSize(const std::pair<int, int> &size) override;
@@ -59,6 +62,8 @@ namespace win32 {
     bool        mShouldClose  = false;
     HWND        mWindowHandle = nullptr;
     DWORD       mStyle = 0, mExStyle = 0;
+  private:
+    std::bitset<(size_t)KeyCode::Count> mKeys = {};
   private:
     void   createWindow(const WindowInfo &info);
     LPWSTR lpcstrToLpwstr(LPCSTR cstr);

@@ -1,4 +1,3 @@
-#include <vector>
 #if _PURRR_PLATFORM == win32
 
 #ifndef _PURRR_WIN32_CONTEXT_HPP_
@@ -11,6 +10,9 @@
 #include <Windows.h>
 
 #include <utility>
+#include <vector>
+
+#include "purrr/window.hpp"
 
 namespace purrr {
 namespace win32 {
@@ -45,11 +47,16 @@ namespace win32 {
     ATOM      mWindowClass    = INVALID_ATOM;
     uint64_t  mTimerFrequency = 0;
   private:
+    KeyCode mKeyCodes[512];
+  private:
     void registerClass();
+    void fillKeyCodeTable();
   protected:
 #ifdef _PURRR_BACKEND_VULKAN
     void appendRequiredVulkanExtensions(std::vector<const char *> &extensions);
 #endif
+  public:
+    KeyCode getKeyCode(WORD scanCode) const { return mKeyCodes[scanCode]; }
   };
 
 } // namespace win32

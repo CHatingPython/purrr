@@ -165,8 +165,56 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     window->mMouseButtons &= ~(1 << ((lParam == 2) ? MouseButtons::X2 : MouseButtons::X1));
     return TRUE;
   }
-  default: return DefWindowProcW(windowHandle, msg, wParam, lParam);
+  case WM_KEYDOWN:
+  case WM_SYSKEYDOWN:
+  case WM_KEYUP:
+  case WM_SYSKEYUP: { // Based off of GLFW's code (https://github.com/glfw/glfw/blob/4c64184455f393b85ca55408ece3e8c596af7050/src/win32_window.c#L704)
+    WORD keyFlags = HIWORD(lParam);
+    BOOL extended = (keyFlags & KF_EXTENDED) == KF_EXTENDED;
+    BOOL released = (keyFlags & KF_UP) == KF_UP;
+    WORD scanCode = keyFlags & (0xFF | KF_EXTENDED);
+    if (!scanCode) {
+      scanCode = MapVirtualKeyW(static_cast<UINT>(wParam), MAPVK_VK_TO_VSC);
+    }
+
+    if (scanCode == 0x54) scanCode = 0x137;
+    if (scanCode == 0x146) scanCode = 0x45;
+    if (scanCode == 0x136) scanCode = 0x36;
+
+    KeyCode keyCode = window->mContext->getKeyCode(scanCode);
+    if (wParam == VK_CONTROL) {
+      if (extended) {
+        keyCode = KeyCode::RightControl;
+      } else {
+        auto        next = MSG{};
+        const DWORD time = GetMessageTime();
+
+        if (PeekMessageW(&next, NULL, 0, 0, PM_NOREMOVE)) {
+          if (next.message == WM_KEYDOWN || next.message == WM_SYSKEYDOWN || next.message == WM_KEYUP ||
+              next.message == WM_SYSKEYUP) {
+            if (next.wParam == VK_MENU && (HIWORD(next.lParam) & KF_EXTENDED) && next.time == time) {
+              break;
+            }
+          }
+        }
+      }
+
+      keyCode = KeyCode::LeftControl;
+    } else if (wParam == VK_PROCESSKEY)
+      break;
+
+    if (wParam == VK_SNAPSHOT) {
+      // Press and release
+    } else {
+      window->mKeys[(size_t)keyCode] = !released;
+    }
+
+    return 0;
   }
+  default: break;
+  }
+
+  return DefWindowProcW(windowHandle, msg, wParam, lParam);
 }
 
 #ifdef _PURRR_BACKEND_VULKAN
