@@ -167,11 +167,17 @@ namespace events {
   struct MouseMoveEvent : public Event {
     virtual constexpr EventType eventType() const override { return EventType::MouseMove; }
 
+    MouseMoveEvent(double x, double y)
+      : xPos(x), yPos(y) {}
+
     double xPos, yPos;
   };
 
   struct MouseButtonEvent : public Event {
     virtual constexpr EventType eventType() const override { return EventType::MouseButton; }
+
+    MouseButtonEvent(MouseButton btn, bool p)
+      : button(btn), pressed(p) {}
 
     MouseButton button;
     bool        pressed;
@@ -180,11 +186,17 @@ namespace events {
   struct MouseWheelEvent : public Event {
     virtual constexpr EventType eventType() const override { return EventType::MouseWheel; }
 
+    MouseWheelEvent(double d)
+      : delta(d) {}
+
     double delta;
   };
 
   struct KeyEvent : public Event {
     virtual constexpr EventType eventType() const override { return EventType::Key; }
+
+    KeyEvent(KeyCode code, KeyAction ac)
+      : keyCode(code), action(ac) {}
 
     KeyCode   keyCode;
     KeyAction action;
