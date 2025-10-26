@@ -148,6 +148,9 @@ enum class KeyAction : uint8_t {
 };
 
 enum class EventType {
+  WindowMove,
+  WindowResize,
+
   MouseMove,
   MouseButton,
   MouseWheel,
@@ -163,6 +166,24 @@ struct Event {
 };
 
 namespace events {
+
+  struct WindowMoveEvent : public Event {
+    virtual constexpr EventType eventType() const override { return EventType::WindowMove; }
+
+    WindowMoveEvent(int x, int y)
+      : xPos(x), yPos(y) {}
+
+    int xPos, yPos;
+  };
+
+  struct WindowResizeEvent : public Event {
+    virtual constexpr EventType eventType() const override { return EventType::WindowResize; }
+
+    WindowResizeEvent(int w, int h)
+      : width(w), height(h) {}
+
+    int width, height;
+  };
 
   struct MouseMoveEvent : public Event {
     virtual constexpr EventType eventType() const override { return EventType::MouseMove; }
