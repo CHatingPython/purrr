@@ -40,16 +40,13 @@ namespace win32 {
   public:
     virtual std::pair<int, int> getSize() const override { return std::make_pair(mWidth, mHeight); }
     virtual std::pair<int, int> getPosition() const override { return std::make_pair(mXPos, mYPos); }
-    virtual std::pair<int, int> getCursorPosition() const override { return std::make_pair(mCursorX, mCursorY); }
   public:
     virtual void setSize(const std::pair<int, int> &size) override;
     virtual void setPosition(const std::pair<int, int> &position) override;
-    virtual void setCursorPosition(const std::pair<int, int> &position) override;
   private:
     Context *mContext = nullptr;
     WORD     mWidth = 0, mHeight = 0;
     WORD     mXPos = 0, mYPos = 0;
-    int      mCursorX = 0, mCursorY = 0;
     HWND     mWindowHandle = nullptr;
     DWORD    mStyle = 0, mExStyle = 0;
   private:

@@ -15,8 +15,7 @@ Window::Window(Context *context, const WindowInfo &info)
   {
     auto position = POINT{};
     GetCursorPos(&position);
-    mCursorX = position.x;
-    mCursorY = position.y;
+    inputMouseMove(position.x, position.y);
   }
 }
 
@@ -43,11 +42,6 @@ void Window::setPosition(const std::pair<int, int> &position) {
   auto rect = RECT{ position.first, position.second, 0, 0 };
   AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
   SetWindowPos(mWindowHandle, HWND_TOP, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER);
-}
-
-void Window::setCursorPosition(const std::pair<int, int> &position) {
-  auto point = POINT{ .x = mCursorX = position.first, .y = mCursorY = position.second };
-  ClientToScreen(mWindowHandle, &point);
 }
 
 void Window::createWindow(const WindowInfo &info) {
@@ -121,16 +115,17 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
   case WM_MOVE: {
     window->mXPos = LOWORD(lParam);
     window->mYPos = HIWORD(lParam);
+    window->inputWindowMove(window->mXPos, window->mYPos);
     return 0;
   }
   case WM_SIZE: {
     window->mWidth  = LOWORD(lParam);
     window->mHeight = HIWORD(lParam);
+    window->inputWindowResize(window->mWidth, window->mHeight);
     return 0;
   }
   case WM_MOUSEMOVE: {
-    window->mCursorX = GET_X_LPARAM(lParam);
-    window->mCursorY = GET_Y_LPARAM(lParam);
+    window->inputMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
     return 0;
   }
   case WM_LBUTTONDOWN: {
@@ -164,6 +159,10 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
   case WM_XBUTTONUP: {
     window->inputMouseButton(((lParam == 2) ? MouseButton::X2 : MouseButton::X1), false);
     return TRUE;
+  }
+  case WM_MOUSEWHEEL: {
+    window->inputMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA);
+    return 0;
   }
   case WM_KEYDOWN:
   case WM_SYSKEYDOWN:
@@ -204,7 +203,8 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
       break;
 
     if (wParam == VK_SNAPSHOT) {
-      // Press and release
+      window->inputKey(KeyCode::PrintScreen, true);
+      window->inputKey(KeyCode::PrintScreen, false);
     } else {
       window->inputKey(keyCode, !released);
     }
