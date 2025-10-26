@@ -1,20 +1,15 @@
+/*
+  Simple paint program
+ */
+
 #include "purrr/purrr.hpp"
 #include "purrr/programInfoBuilder.hpp"
 
+#include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <vector> // IWYU pragma: keep
 #include <fstream>
-
-static struct Vertex {
-  float x, y;
-  float u, v;
-} sVertices[] = { Vertex{ -1.0f, -1.0f, 0.0f, 0.0f },
-                  Vertex{ 1.0f, -1.0f, 1.0f, 0.0f },
-                  Vertex{ 1.0f, 1.0f, 1.0f, 1.0f },
-                  Vertex{ -1.0f, 1.0f, 0.0f, 1.0f } };
-
-static uint32_t sIndices[] = { 0, 1, 2, 2, 3, 0 };
 
 std::vector<char> readFile(const char *filepath) {
   std::ifstream file(filepath, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
@@ -28,90 +23,116 @@ std::vector<char> readFile(const char *filepath) {
   return content;
 }
 
+static purrr::Context *sContext = nullptr;
+static purrr::Sampler *sSampler = nullptr;
+
+struct Canvas {
+  Canvas(size_t width, size_t height)
+    : image(sContext->createImage(purrr::ImageInfo{ .width   = width,
+                                                    .height  = height,
+                                                    .format  = purrr::Format::RGBA8Srgb,
+                                                    .tiling  = purrr::ImageTiling::Optimal,
+                                                    .usage   = { .texture = true },
+                                                    .sampler = sSampler })),
+      pixels(new uint8_t[width * height * 4]),
+      width(width),
+      height(height) {
+    memset(pixels, 0xFF, width * height * 4);
+    image->copyData(width, height, width * height * 4, pixels);
+  }
+
+  ~Canvas() {
+    delete[] pixels;
+    delete image;
+
+    pixels = nullptr;
+    image  = nullptr;
+  }
+
+  void draw(size_t x, size_t y) {
+    for (int oy = -1; oy <= 1; ++oy) {
+      size_t index = (y + oy) * width + x - 1;
+      for (int i = 0; i < 3; ++i) {
+        pixels[(index * 4) + 0] = 0x00; // R
+        pixels[(index * 4) + 1] = 0x00; // G
+        pixels[(index * 4) + 2] = 0x00; // B
+        pixels[(index * 4) + 3] = 0xFF; // A
+        ++index;
+      }
+    }
+    image->copyData(width, height, width * height * 4, pixels);
+  }
+
+  purrr::Image *image;
+  uint8_t      *pixels;
+  size_t        width;
+  size_t        height;
+};
+
 int main(void) {
-  purrr::Context *context = purrr::Context::create(
+  sContext = purrr::Context::create(
       purrr::Api::Vulkan,
       purrr::ContextInfo{ purrr::Version(1, 1, 0), purrr::VERSION, "purrr" });
 
-  purrr::Buffer *vertexBuffer =
-      context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Vertex, sizeof(sVertices) });
-  vertexBuffer->copy(sVertices, 0, sizeof(sVertices));
+  sSampler = sContext->createSampler(purrr::SamplerInfo{ .magFilter    = purrr::Filter::Nearest,
+                                                         .minFilter    = purrr::Filter::Nearest,
+                                                         .mipFilter    = purrr::Filter::Nearest,
+                                                         .addressModeU = purrr::SamplerAddressMode::Repeat,
+                                                         .addressModeV = purrr::SamplerAddressMode::Repeat,
+                                                         .addressModeW = purrr::SamplerAddressMode::Repeat });
 
-  purrr::Buffer *indexBuffer = context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Index, sizeof(sIndices) });
-  indexBuffer->copy(sIndices, 0, sizeof(sIndices));
+  purrr::Window *window = sContext->createWindow(purrr::WindowInfo{ 1920, 1080, "simple paint" });
 
-  purrr::Sampler *sampler =
-      context->createSampler(purrr::SamplerInfo{ .magFilter    = purrr::Filter::Linear,
-                                                 .minFilter    = purrr::Filter::Linear,
-                                                 .mipFilter    = purrr::Filter::Linear,
-                                                 .addressModeU = purrr::SamplerAddressMode::Repeat,
-                                                 .addressModeV = purrr::SamplerAddressMode::Repeat,
-                                                 .addressModeW = purrr::SamplerAddressMode::Repeat });
+  purrr::Shader *vertexShader   = sContext->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
+  purrr::Shader *fragmentShader = sContext->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
 
-  purrr::Window *window = context->createWindow(purrr::WindowInfo{ 1000, 1000, "purrr example" });
-
-  purrr::Shader *vertexShader   = context->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
-  purrr::Shader *fragmentShader = context->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
-
-  purrr::Program *program =
-      window->createProgram(purrr::ProgramInfoBuilder()
-                                .addShader(vertexShader)
-                                .addShader(fragmentShader)
-                                .beginVertexInfo(sizeof(Vertex), purrr::VertexInputRate::Vertex)
-                                .addVertexAttrib(purrr::Format::RG32Sfloat, 0 * sizeof(float)) // position
-                                .addVertexAttrib(purrr::Format::RG32Sfloat, 2 * sizeof(float)) // texCoord
-                                .setCullMode(purrr::CullMode::Back)
-                                .setFrontFace(purrr::FrontFace::Clockwise)
-                                .setTopology(purrr::Topology::TriangleList)
-                                .addSlot(purrr::ProgramSlot::UniformBuffer)
-                                .build());
+  purrr::Program *program = window->createProgram(purrr::ProgramInfoBuilder()
+                                                      .addShader(vertexShader)
+                                                      .addShader(fragmentShader)
+                                                      .setCullMode(purrr::CullMode::Back)
+                                                      .setFrontFace(purrr::FrontFace::CounterClockwise)
+                                                      .setTopology(purrr::Topology::TriangleStrip)
+                                                      .addSlot(purrr::ProgramSlot::Texture)
+                                                      .build());
 
   delete vertexShader;
   delete fragmentShader;
 
-  purrr::Buffer *ubo = context->createBuffer(purrr::BufferInfo{ purrr::BufferType::Uniform, sizeof(float) });
-
-  static constexpr float SPEED = 0.1f;
+  Canvas canvas(window->getSize().first, window->getSize().second);
 
   while (!window->shouldClose()) { // Windows passed to `record` MUST NOT be destroyed before `present`
-    context->pollWindowEvents();
+    sContext->pollWindowEvents();
 
-    context->begin(); // Wait and begin a command buffer
-
-    float time = static_cast<float>(context->getTime());
-    ubo->copy(&time, 0, sizeof(time));
-
-    if (window->isKeyDown(purrr::KeyCode::W)) {
-      std::cout << "W IS DOWN!!!!\n";
+    if (window->isMouseButtonDown(purrr::MouseButton::Left)) {
+      auto [mx, my] = window->getCursorPosition();
+      canvas.draw(mx, my);
     }
 
-    if (context->record(window, { { { 0.0f, 0.0f, 0.0f, 1.0f } } })) { // Begin recording
-      context->useProgram(program);
-      context->useVertexBuffer(vertexBuffer, 0);
-      context->useIndexBuffer(indexBuffer, purrr::IndexType::U32);
-      context->useUniformBuffer(ubo, 0);
-      context->drawIndexed(6); // Draw a full-screen square
+    sContext->begin(); // Wait and begin a command buffer
 
-      context->end(); // End recording
+    if (sContext->record(window, { { { 0.0f, 0.0f, 0.0f, 1.0f } } })) { // Begin recording
+      sContext->useProgram(program);
+      sContext->useTextureImage(canvas.image, 0);
+      sContext->draw(4); // Draw a full-screen square
+
+      sContext->end(); // End recording
     }
 
-    context->submit();
+    sContext->submit();
 
     // If every `record` call returned false and every window passed to `record` is minimized, present
     // will wait on window events. This behaviour can be disabled by passing false.
-    context->present();
+    sContext->present();
   }
 
-  context->waitIdle();
+  sContext->waitIdle();
 
-  delete ubo;
-  delete sampler;
+  canvas.~Canvas();
+  delete sSampler;
   delete program;
-  delete indexBuffer;
-  delete vertexBuffer;
 
   delete window;
-  delete context;
+  delete sContext;
 
   return 0;
 }
