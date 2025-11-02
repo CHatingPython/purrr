@@ -51,7 +51,7 @@ namespace win32 {
     DWORD    mStyle = 0, mExStyle = 0;
   private:
     void   createWindow(const WindowInfo &info);
-    LPWSTR lpcstrToLpwstr(LPCSTR cstr);
+    LPWSTR lpcstrToLpwstr(LPCSTR cstr, int length);
     void   fetchPositionAndSize();
   private:
     static LRESULT windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);

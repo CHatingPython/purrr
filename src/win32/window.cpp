@@ -57,7 +57,7 @@ void Window::createWindow(const WindowInfo &info) {
   int width  = (info.width < 0) ? CW_USEDEFAULT : (rect.right - rect.left);
   int height = (info.height < 0) ? CW_USEDEFAULT : (rect.bottom - rect.top);
 
-  LPWSTR wideTitle = lpcstrToLpwstr(info.title);
+  LPWSTR wideTitle = lpcstrToLpwstr(info.title, info.titleLength);
 
   ATOM windowClass = mContext->getWindowClass();
   mWindowHandle    = CreateWindowExW(
@@ -82,12 +82,12 @@ void Window::createWindow(const WindowInfo &info) {
   ShowWindow(mWindowHandle, SW_SHOW);
 }
 
-LPWSTR Window::lpcstrToLpwstr(LPCSTR cstr) {
-  int length = MultiByteToWideChar(CP_UTF8, 0, cstr, -1, nullptr, 0);
+LPWSTR Window::lpcstrToLpwstr(LPCSTR cstr, int length) {
+  int wideLength = MultiByteToWideChar(CP_UTF8, 0, cstr, length, nullptr, 0);
 
-  auto wstr = new WCHAR[length];
-  MultiByteToWideChar(CP_UTF8, 0, cstr, -1, wstr, length);
-  wstr[length - 1] = L'\0';
+  auto wstr = new WCHAR[wideLength];
+  MultiByteToWideChar(CP_UTF8, 0, cstr, length, wstr, wideLength);
+  wstr[wideLength - 1] = L'\0';
   return wstr;
 }
 

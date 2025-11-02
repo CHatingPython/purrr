@@ -11,11 +11,13 @@
 
 namespace purrr {
 
+static constexpr int LENGTH_CSTR = -1;
+
 struct WindowInfo {
   int         width       = -1;
   int         height      = -1;
   const char *title       = "purrr window";
-  size_t      titleLength = -1;
+  int      titleLength = LENGTH_CSTR;
   int         xPos        = -1;
   int         yPos        = -1;
 };
