@@ -16,7 +16,7 @@ target_include_directories(purrr
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
     $<INSTALL_INTERFACE:include>)
-target_link_libraries(purrr Vulkan::Vulkan)
+target_link_libraries(purrr PRIVATE Vulkan::Vulkan)
 
 target_compile_definitions(purrr PRIVATE _PURRR_PLATFORM=win32 _PURRR_BACKEND_VULKAN)
 
