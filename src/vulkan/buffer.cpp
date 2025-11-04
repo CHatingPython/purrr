@@ -43,7 +43,7 @@ Buffer::~Buffer() {
   if (mBuffer) vkDestroyBuffer(mContext->getDevice(), mBuffer, VK_NULL_HANDLE);
 }
 
-void Buffer::copy(void *data, size_t offset, size_t size) {
+void Buffer::copy(const void *data, size_t offset, size_t size) {
   VkBuffer       stagingBuffer = VK_NULL_HANDLE;
   VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
   createBuffer(mContext, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, false, &stagingBuffer, &stagingMemory);

@@ -16,7 +16,7 @@ namespace vulkan {
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
-    virtual void copy(void *data, size_t offset, size_t size) override;
+    virtual void copy(const void *data, size_t offset, size_t size) override;
   public:
     BufferType      getType() const { return mType; }
     VkBuffer        getBuffer() const { return mBuffer; }
