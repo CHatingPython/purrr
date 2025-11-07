@@ -73,6 +73,7 @@ public:
   virtual RenderTarget *createRenderTarget(const RenderTargetInfo &info) = 0;
 public:
   virtual Shader *createShader(ShaderType type, const std::vector<char> &code) = 0;
+  virtual Shader *createShader(ShaderType type, const std::string_view &code)  = 0;
 public:
   virtual void begin()                                                      = 0;
   virtual bool record(Window *window, const RecordClear &clear)             = 0;

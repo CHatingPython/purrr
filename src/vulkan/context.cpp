@@ -89,6 +89,10 @@ purrr::Shader *Context::createShader(ShaderType type, const std::vector<char> &c
   return new Shader(this, ShaderInfo{ .type = type, .code = code.data(), .codeLength = code.size() });
 }
 
+purrr::Shader *Context::createShader(ShaderType type, const std::string_view &code) {
+  return new Shader(this, ShaderInfo{ .type = type, .code = code.data(), .codeLength = code.size() });
+}
+
 void Context::begin() {
   expectResult("Wait for fence", vkWaitForFences(mDevice, 1, &mFence, VK_TRUE, std::numeric_limits<uint64_t>::max()));
   expectResult("Fence reset", vkResetFences(mDevice, 1, &mFence));

@@ -57,6 +57,7 @@ namespace vulkan {
     virtual purrr::RenderTarget *createRenderTarget(const RenderTargetInfo &info) override;
   public:
     virtual purrr::Shader *createShader(ShaderType type, const std::vector<char> &code) override;
+    virtual purrr::Shader *createShader(ShaderType type, const std::string_view &code) override;
   public:
     virtual void begin() override;
     virtual bool record(purrr::Window *window, const RecordClear &clear) override;
