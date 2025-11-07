@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "purrr/program.hpp"
+#include "purrr/purrr.hpp"
 #include "purrr/window.hpp"
 
 namespace purrr {
@@ -14,6 +15,14 @@ public:
   ProgramBuilder() = default;
 public:
   ProgramBuilder &addShader(Shader *shader) {
+    mShaders.push_back(shader);
+    return *this;
+  }
+
+  template <typename... Args>
+  ProgramBuilder &addShader(Context *context, Args &&...args) {
+    Shader *shader = context->createShader(std::forward<Args>(args)...);
+    mMyShaders.push_back(shader);
     mShaders.push_back(shader);
     return *this;
   }
@@ -81,6 +90,7 @@ public:
                                               .slotCount       = mSlots.size() });
   }
 private:
+  std::vector<Shader *>        mMyShaders           = {};
   std::vector<Shader *>        mShaders             = {};
   std::vector<size_t>          mVertexAttribOffsets = {};
   std::vector<VertexAttribute> mVertexAttribs       = {};

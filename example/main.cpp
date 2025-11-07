@@ -83,20 +83,14 @@ int main(void) {
 
   purrr::Window *window = sContext->createWindow(purrr::WindowInfo{ 1920, 1080, "simple paint" });
 
-  purrr::Shader *vertexShader   = sContext->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
-  purrr::Shader *fragmentShader = sContext->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
-
   purrr::Program *program = purrr::ProgramBuilder()
-                                .addShader(vertexShader)
-                                .addShader(fragmentShader)
+                                .addShader(sContext, purrr::ShaderType::Vertex, readFile("./shader.vert.spv"))
+                                .addShader(sContext, purrr::ShaderType::Fragment, readFile("./shader.frag.spv"))
                                 .setCullMode(purrr::CullMode::Back)
                                 .setFrontFace(purrr::FrontFace::CounterClockwise)
                                 .setTopology(purrr::Topology::TriangleStrip)
                                 .addSlot(purrr::ProgramSlot::Texture)
                                 .build(window);
-
-  delete vertexShader;
-  delete fragmentShader;
 
   Canvas canvas(window->getSize().first, window->getSize().second);
 
