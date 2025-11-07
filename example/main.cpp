@@ -3,7 +3,7 @@
  */
 
 #include "purrr/purrr.hpp"
-#include "purrr/programInfoBuilder.hpp"
+#include "purrr/programBuilder.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -86,14 +86,14 @@ int main(void) {
   purrr::Shader *vertexShader   = sContext->createShader(purrr::ShaderType::Vertex, readFile("./shader.vert.spv"));
   purrr::Shader *fragmentShader = sContext->createShader(purrr::ShaderType::Fragment, readFile("./shader.frag.spv"));
 
-  purrr::Program *program = window->createProgram(purrr::ProgramInfoBuilder()
-                                                      .addShader(vertexShader)
-                                                      .addShader(fragmentShader)
-                                                      .setCullMode(purrr::CullMode::Back)
-                                                      .setFrontFace(purrr::FrontFace::CounterClockwise)
-                                                      .setTopology(purrr::Topology::TriangleStrip)
-                                                      .addSlot(purrr::ProgramSlot::Texture)
-                                                      .build());
+  purrr::Program *program = purrr::ProgramBuilder()
+                                .addShader(vertexShader)
+                                .addShader(fragmentShader)
+                                .setCullMode(purrr::CullMode::Back)
+                                .setFrontFace(purrr::FrontFace::CounterClockwise)
+                                .setTopology(purrr::Topology::TriangleStrip)
+                                .addSlot(purrr::ProgramSlot::Texture)
+                                .build(window);
 
   delete vertexShader;
   delete fragmentShader;

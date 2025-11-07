@@ -1,55 +1,68 @@
-#ifndef _PURRR_PROGRAM_INFO_BUILDER_HPP_
-#define _PURRR_PROGRAM_INFO_BUILDER_HPP_
+#ifndef _PURRR_PROGRAM_BUILDER_HPP_
+#define _PURRR_PROGRAM_BUILDER_HPP_
 
 #include <stdexcept>
 #include <vector>
 
 #include "purrr/program.hpp"
+#include "purrr/window.hpp"
 
 namespace purrr {
 
-class ProgramInfoBuilder {
+class ProgramBuilder {
 public:
-  ProgramInfoBuilder() = default;
+  ProgramBuilder() = default;
 public:
-  ProgramInfoBuilder &addShader(Shader *shader) {
+  ProgramBuilder &addShader(Shader *shader) {
     mShaders.push_back(shader);
     return *this;
   }
 
-  ProgramInfoBuilder &beginVertexInfo(uint32_t stride, VertexInputRate inputRate) {
+  ProgramBuilder &beginVertexInfo(uint32_t stride, VertexInputRate inputRate) {
     mVertexAttribOffsets.push_back(mVertexAttribs.size());
     mVertexInfos.emplace_back(stride, inputRate, nullptr, 0);
     return *this;
   }
 
-  ProgramInfoBuilder &addVertexAttrib(Format format, uint32_t offset) {
+  ProgramBuilder &addVertexAttrib(Format format, uint32_t offset) {
     if (mVertexAttribOffsets.empty()) throw std::runtime_error("Call beginVertexInfo before addVertexAttrib");
     mVertexAttribs.emplace_back(format, offset);
     return *this;
   }
 
-  ProgramInfoBuilder &addSlot(ProgramSlot slot) {
+  ProgramBuilder &clearVertexInfos() {
+    mVertexInfos.clear();
+    mVertexAttribs.clear();
+    mVertexAttribOffsets.clear();
+    return *this;
+  }
+
+  ProgramBuilder &addSlot(ProgramSlot slot) {
     mSlots.push_back(slot);
     return *this;
   }
 
-  ProgramInfoBuilder &setTopology(Topology topology) {
+  ProgramBuilder &clearSlots() {
+    mSlots.clear();
+    return *this;
+  }
+
+  ProgramBuilder &setTopology(Topology topology) {
     mTopology = topology;
     return *this;
   }
 
-  ProgramInfoBuilder &setCullMode(CullMode cullMode) {
+  ProgramBuilder &setCullMode(CullMode cullMode) {
     mCullMode = cullMode;
     return *this;
   }
 
-  ProgramInfoBuilder &setFrontFace(FrontFace frontFace) {
+  ProgramBuilder &setFrontFace(FrontFace frontFace) {
     mFrontFace = frontFace;
     return *this;
   }
 public:
-  ProgramInfo build() {
+  Program *build(purrr::Window *window) {
     for (size_t i = 0; i < mVertexInfos.size(); ++i) {
       mVertexInfos[i].attributes     = &mVertexAttribs[mVertexAttribOffsets[i]];
       mVertexInfos[i].attributeCount = (i + 1 < mVertexInfos.size())
@@ -57,15 +70,15 @@ public:
                                            : (mVertexAttribs.size() - mVertexAttribOffsets[i]);
     }
 
-    return ProgramInfo{ .shaders         = mShaders.data(),
-                        .shaderCount     = mShaders.size(),
-                        .vertexInfos     = mVertexInfos.data(),
-                        .vertexInfoCount = mVertexInfos.size(),
-                        .topology        = mTopology,
-                        .cullMode        = mCullMode,
-                        .frontFace       = mFrontFace,
-                        .slots           = mSlots.data(),
-                        .slotCount       = mSlots.size() };
+    return window->createProgram(ProgramInfo{ .shaders         = mShaders.data(),
+                                              .shaderCount     = mShaders.size(),
+                                              .vertexInfos     = mVertexInfos.data(),
+                                              .vertexInfoCount = mVertexInfos.size(),
+                                              .topology        = mTopology,
+                                              .cullMode        = mCullMode,
+                                              .frontFace       = mFrontFace,
+                                              .slots           = mSlots.data(),
+                                              .slotCount       = mSlots.size() });
   }
 private:
   std::vector<Shader *>        mShaders             = {};
@@ -80,4 +93,4 @@ private:
 
 } // namespace purrr
 
-#endif // _PURRR_PROGRAM_INFO_BUILDER_HPP_
+#endif // _PURRR_PROGRAM_BUILDER_HPP_
