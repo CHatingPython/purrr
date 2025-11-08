@@ -2,8 +2,12 @@
 #include "purrr/win32/window.hpp"
 
 #include <stdexcept>
+#include <cassert>
 
-#include <windowsx.h>
+// For GET_X_LPARAM I think
+#include <windowsx.h> // IWYU pragma: keep
+
+#undef min
 
 namespace purrr::win32 {
 
@@ -21,6 +25,20 @@ Window::Window(Context *context, const WindowInfo &info)
 
 Window::~Window() {
   if (mWindowHandle) DestroyWindow(mWindowHandle);
+}
+
+int Window::getTitle(char *title, int length) const {
+  assert(length > 0);
+  LPWSTR wideTitle  = new WCHAR[length + 1];
+  int    wideLength = GetWindowTextW(mWindowHandle, wideTitle, length + 1);
+
+  LPSTR str       = lpwstrToLpcstr(wideTitle, wideLength);
+  int   strLength = strlen(str);
+  int   minLength = std::min(length - 1, strLength);
+
+  memcpy(title, str, minLength);
+  title[minLength] = '\0';
+  return minLength;
 }
 
 void Window::setSize(const std::pair<int, int> &size) {
@@ -42,6 +60,12 @@ void Window::setPosition(const std::pair<int, int> &position) {
   auto rect = RECT{ position.first, position.second, 0, 0 };
   AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
   SetWindowPos(mWindowHandle, HWND_TOP, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER);
+}
+
+void Window::setTitle(const char *title, int titleLength) {
+  LPWSTR wideTitle = lpcstrToLpwstr(title, titleLength);
+  SetWindowTextW(mWindowHandle, wideTitle);
+  delete[] wideTitle;
 }
 
 void Window::createWindow(const WindowInfo &info) {
@@ -82,13 +106,30 @@ void Window::createWindow(const WindowInfo &info) {
   ShowWindow(mWindowHandle, SW_SHOW);
 }
 
-LPWSTR Window::lpcstrToLpwstr(LPCSTR cstr, int length) {
+LPWSTR Window::lpcstrToLpwstr(LPCSTR cstr, int length) const {
   int wideLength = MultiByteToWideChar(CP_UTF8, 0, cstr, length, nullptr, 0);
 
   auto wstr = new WCHAR[wideLength];
   MultiByteToWideChar(CP_UTF8, 0, cstr, length, wstr, wideLength);
   wstr[wideLength - 1] = L'\0';
   return wstr;
+}
+
+LPSTR Window::lpwstrToLpcstr(LPCWSTR wstr, int wideLength) const {
+  int length = WideCharToMultiByte(CP_UTF8, 0, wstr, wideLength, nullptr, 0, nullptr, nullptr);
+
+  auto cstr = new CHAR[length];
+  WideCharToMultiByte(CP_UTF8, 0, wstr, wideLength, cstr, length, nullptr, nullptr);
+  cstr[length - 1] = '\0';
+  return cstr;
+}
+
+LPSTR Window::strdup(LPCSTR cstr, int length) {
+  if (length < 0) length = strlen(cstr);
+  LPSTR str   = new CHAR[length + 1];
+  str[length] = '\0';
+  memcpy(str, cstr, length);
+  return str;
 }
 
 void Window::fetchPositionAndSize() {

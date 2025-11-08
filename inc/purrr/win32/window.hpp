@@ -41,8 +41,11 @@ namespace win32 {
     virtual std::pair<int, int> getSize() const override { return std::make_pair(mWidth, mHeight); }
     virtual std::pair<int, int> getPosition() const override { return std::make_pair(mXPos, mYPos); }
   public:
+    virtual int getTitle(char *title, int length) const override;
+  public:
     virtual void setSize(const std::pair<int, int> &size) override;
     virtual void setPosition(const std::pair<int, int> &position) override;
+    virtual void setTitle(const char *title, int titleLength) override;
   private:
     Context *mContext = nullptr;
     WORD     mWidth = 0, mHeight = 0;
@@ -51,7 +54,9 @@ namespace win32 {
     DWORD    mStyle = 0, mExStyle = 0;
   private:
     void   createWindow(const WindowInfo &info);
-    LPWSTR lpcstrToLpwstr(LPCSTR cstr, int length);
+    LPWSTR lpcstrToLpwstr(LPCSTR cstr, int length) const;
+    LPSTR  lpwstrToLpcstr(LPCWSTR wstr, int wideLength) const;
+    LPSTR  strdup(LPCSTR cstr, int length);
     void   fetchPositionAndSize();
   private:
     static LRESULT windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);

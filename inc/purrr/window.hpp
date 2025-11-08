@@ -17,7 +17,7 @@ struct WindowInfo {
   int         width       = -1;
   int         height      = -1;
   const char *title       = "purrr window";
-  int      titleLength = LENGTH_CSTR;
+  int         titleLength = LENGTH_CSTR;
   int         xPos        = -1;
   int         yPos        = -1;
 };
@@ -36,7 +36,9 @@ public:
 public:
   void registerCallback(EventCallback callback) { mCallbacks.push_back(callback); }
 public:
-  virtual std::pair<int, int> getPosition() const = 0;
+  virtual std::pair<int, int> getPosition() const                     = 0;
+public:
+  virtual int                 getTitle(char *title, int length) const = 0;
 public:
   std::pair<int, int> getCursorPosition() const { return std::make_pair(mCursorX, mCursorY); }
 public:
@@ -47,8 +49,9 @@ public:
   bool shouldClose() const { return mShouldClose; }
   void shouldClose(bool shouldClose) { mShouldClose = shouldClose; }
 public:
-  virtual void setSize(const std::pair<int, int> &size)         = 0;
-  virtual void setPosition(const std::pair<int, int> &position) = 0;
+  virtual void setSize(const std::pair<int, int> &size)          = 0;
+  virtual void setPosition(const std::pair<int, int> &position)  = 0;
+  virtual void setTitle(const char *title, int titleLength = -1) = 0;
 private:
   double                                  mCursorX      = 0.0f;
   double                                  mCursorY      = 0.0f;
