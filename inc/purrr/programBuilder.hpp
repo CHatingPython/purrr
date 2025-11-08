@@ -13,6 +13,13 @@ namespace purrr {
 class ProgramBuilder {
 public:
   ProgramBuilder() = default;
+
+  ~ProgramBuilder() {
+    for (Shader *shader : mMyShaders) {
+      delete shader;
+    }
+    mMyShaders.clear();
+  }
 public:
   ProgramBuilder &addShader(Shader *shader) {
     mShaders.push_back(shader);
