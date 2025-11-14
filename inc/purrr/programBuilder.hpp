@@ -78,7 +78,11 @@ public:
     return *this;
   }
 public:
-  Program *build(purrr::Window *window) {
+  template <typename T>
+    requires requires(T *t, const ProgramInfo &info) {
+      { t->createProgram(info) } -> std::same_as<Program *>;
+    }
+  Program *build(T *middleman) {
     for (size_t i = 0; i < mVertexInfos.size(); ++i) {
       mVertexInfos[i].attributes     = &mVertexAttribs[mVertexAttribOffsets[i]];
       mVertexInfos[i].attributeCount = (i + 1 < mVertexInfos.size())
@@ -86,15 +90,15 @@ public:
                                            : (mVertexAttribs.size() - mVertexAttribOffsets[i]);
     }
 
-    return window->createProgram(ProgramInfo{ .shaders         = mShaders.data(),
-                                              .shaderCount     = mShaders.size(),
-                                              .vertexInfos     = mVertexInfos.data(),
-                                              .vertexInfoCount = mVertexInfos.size(),
-                                              .topology        = mTopology,
-                                              .cullMode        = mCullMode,
-                                              .frontFace       = mFrontFace,
-                                              .slots           = mSlots.data(),
-                                              .slotCount       = mSlots.size() });
+    return middleman->createProgram(ProgramInfo{ .shaders         = mShaders.data(),
+                                                 .shaderCount     = mShaders.size(),
+                                                 .vertexInfos     = mVertexInfos.data(),
+                                                 .vertexInfoCount = mVertexInfos.size(),
+                                                 .topology        = mTopology,
+                                                 .cullMode        = mCullMode,
+                                                 .frontFace       = mFrontFace,
+                                                 .slots           = mSlots.data(),
+                                                 .slotCount       = mSlots.size() });
   }
 private:
   std::vector<Shader *>        mMyShaders           = {};
