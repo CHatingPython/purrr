@@ -220,7 +220,7 @@ void Context::useProgram(purrr::Program *program) {
 
   if (program->api() != Api::Vulkan) throw std::runtime_error("Uncompatible program object");
   Program *vkProgram = reinterpret_cast<Program *>(program);
-  if (!vkProgram->sameWindow(mWindows.back())) throw std::runtime_error("Uncompatible program object");
+  if (!vkProgram->sameRenderTarget(mWindows.back())) throw std::runtime_error("Uncompatible program object");
   mProgram = vkProgram;
 
   vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkProgram->getPipeline());

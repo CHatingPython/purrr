@@ -3,6 +3,7 @@
 
 #include "purrr/object.hpp"
 #include "purrr/image.hpp"
+#include "purrr/program.hpp"
 
 #include <utility>
 
@@ -22,6 +23,8 @@ public:
 public:
   RenderTarget(const RenderTarget &)            = delete;
   RenderTarget &operator=(const RenderTarget &) = delete;
+public:
+  virtual Program *createProgram(const ProgramInfo &info) = 0;
 public:
   virtual std::pair<int, int> getSize() const = 0;
 };

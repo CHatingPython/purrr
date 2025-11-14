@@ -1,6 +1,7 @@
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/renderTarget.hpp"
+#include "purrr/vulkan/program.hpp"
 #include "purrr/vulkan/format.hpp"
 
 #include <stdexcept>
@@ -26,6 +27,10 @@ RenderTarget::RenderTarget(Context *context, const RenderTargetInfo &info)
 RenderTarget::~RenderTarget() {
   if (mFramebuffer) vkDestroyFramebuffer(mContext->getDevice(), mFramebuffer, VK_NULL_HANDLE);
   if (mRenderPass) vkDestroyRenderPass(mContext->getDevice(), mRenderPass, VK_NULL_HANDLE);
+}
+
+purrr::Program *RenderTarget::createProgram(const ProgramInfo &info) {
+  return new Program(this, mContext, info);
 }
 
 void RenderTarget::createRenderPass(const RenderTargetInfo &info) {

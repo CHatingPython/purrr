@@ -2,7 +2,6 @@
 #define _PURRR_WINDOW_HPP_
 
 #include "purrr/renderTarget.hpp" // IWYU pragma: private
-#include "purrr/program.hpp"      // IWYU pragma: private
 #include "purrr/event.hpp"        // IWYU pragma: private
 
 #include <utility>
@@ -32,13 +31,11 @@ public:
   Window(const Window &)            = delete;
   Window &operator=(const Window &) = delete;
 public:
-  virtual Program *createProgram(const ProgramInfo &info) = 0;
-public:
   void registerCallback(EventCallback callback) { mCallbacks.push_back(callback); }
 public:
-  virtual std::pair<int, int> getPosition() const                     = 0;
+  virtual std::pair<int, int> getPosition() const = 0;
 public:
-  virtual int                 getTitle(char *title, int length) const = 0;
+  virtual int getTitle(char *title, int length) const = 0;
 public:
   std::pair<int, int> getCursorPosition() const { return std::make_pair(mCursorX, mCursorY); }
 public:

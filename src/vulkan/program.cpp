@@ -2,7 +2,7 @@
 
 #include "purrr/vulkan/program.hpp"
 #include "purrr/vulkan/context.hpp"
-#include "purrr/vulkan/window.hpp"
+#include "purrr/vulkan/renderTarget.hpp"
 
 #include "purrr/vulkan/format.hpp"
 
@@ -78,8 +78,8 @@ Shader::~Shader() {
   if (mModule) vkDestroyShaderModule(mContext->getDevice(), mModule, VK_NULL_HANDLE);
 }
 
-Program::Program(Window *window, Context *context, const ProgramInfo &info)
-  : mWindow(window), mContext(context) {
+Program::Program(IRenderTarget *renderTarget, Context *context, const ProgramInfo &info)
+  : mRenderTarget(renderTarget), mContext(context) {
   createLayout(info);
   createPipeline(info);
 }
@@ -270,7 +270,7 @@ void Program::createPipeline(const ProgramInfo &info) {
                                                   .pColorBlendState    = &colorBlendState,
                                                   .pDynamicState       = &dynamicState,
                                                   .layout              = mLayout,
-                                                  .renderPass          = mWindow->getRenderPass(),
+                                                  .renderPass          = mRenderTarget->getRenderPass(),
                                                   .subpass             = 0,
                                                   .basePipelineHandle  = VK_NULL_HANDLE,
                                                   .basePipelineIndex   = 0 };

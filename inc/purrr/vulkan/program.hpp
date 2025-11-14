@@ -30,23 +30,23 @@ namespace vulkan {
     VkShaderStageFlagBits mStage   = {};
   };
 
-  class Window;
+  class IRenderTarget;
   class Program : public purrr::Program {
   public:
-    Program(Window *window, Context *context, const ProgramInfo &info);
+    Program(IRenderTarget *renderTarget, Context *context, const ProgramInfo &info);
     ~Program();
   public:
     virtual constexpr Api api() const override { return Api::Vulkan; }
   public:
-    bool sameWindow(Window *window) const { return mWindow == window; }
+    bool sameRenderTarget(IRenderTarget *renderTarget) const { return mRenderTarget == renderTarget; }
   public:
     VkPipelineLayout getLayout() const { return mLayout; }
     VkPipeline       getPipeline() const { return mPipeline; }
   private:
-    Window          *mWindow   = nullptr;
-    Context         *mContext  = nullptr;
-    VkPipelineLayout mLayout   = VK_NULL_HANDLE;
-    VkPipeline       mPipeline = VK_NULL_HANDLE;
+    IRenderTarget   *mRenderTarget = nullptr;
+    Context         *mContext      = nullptr;
+    VkPipelineLayout mLayout       = VK_NULL_HANDLE;
+    VkPipeline       mPipeline     = VK_NULL_HANDLE;
   private:
     void createLayout(const ProgramInfo &info);
     void createPipeline(const ProgramInfo &info);

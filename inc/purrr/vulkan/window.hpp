@@ -3,6 +3,7 @@
 
 #include "purrr/window.hpp"
 #include "purrr/vulkan/context.hpp"
+#include "purrr/vulkan/renderTarget.hpp"
 
 #include "purrr/platform.hpp"
 
@@ -11,7 +12,7 @@
 namespace purrr {
 namespace vulkan {
 
-  class Window : public purrr::platform::Window {
+  class Window : public purrr::platform::Window, public IRenderTarget {
   public:
     Window(Context *context, const WindowInfo &info);
     ~Window();
@@ -31,14 +32,16 @@ namespace vulkan {
   public:
     virtual purrr::Program *createProgram(const ProgramInfo &info) override;
   public:
+    virtual std::pair<int, int> getSize() const override { return purrr::platform::Window::getSize(); }
+  public:
     bool sameContext(Context *context) const { return mContext; }
   public:
-    VkSurfaceKHR    getSurface() const { return mSurface; }
-    VkFormat        getFormat() const { return mFormat; }
-    VkColorSpaceKHR getColorSpace() const { return mColorSpace; }
-    VkRenderPass    getRenderPass() const { return mRenderPass; }
-    VkExtent2D      getSwapchainExtent() const { return mSwapchainExtent; }
-    VkSwapchainKHR  getSwapchain() const { return mSwapchain; }
+    VkSurfaceKHR         getSurface() const { return mSurface; }
+    VkFormat             getFormat() const { return mFormat; }
+    VkColorSpaceKHR      getColorSpace() const { return mColorSpace; }
+    virtual VkRenderPass getRenderPass() const override { return mRenderPass; }
+    VkExtent2D           getSwapchainExtent() const { return mSwapchainExtent; }
+    VkSwapchainKHR       getSwapchain() const { return mSwapchain; }
   public:
     const std::vector<VkImage>       &getImages() const { return mImages; }
     const std::vector<VkImageView>   &getImageViews() const { return mImageViews; }
