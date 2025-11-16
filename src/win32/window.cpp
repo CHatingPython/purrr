@@ -33,7 +33,7 @@ int Window::getTitle(char *title, int length) const {
   int    wideLength = GetWindowTextW(mWindowHandle, wideTitle, length + 1);
 
   LPSTR str       = lpwstrToLpcstr(wideTitle, wideLength);
-  int   strLength = strlen(str);
+  int   strLength = static_cast<int>(strlen(str));
   int   minLength = std::min(length - 1, strLength);
 
   memcpy(title, str, minLength);
@@ -125,7 +125,7 @@ LPSTR Window::lpwstrToLpcstr(LPCWSTR wstr, int wideLength) const {
 }
 
 LPSTR Window::strdup(LPCSTR cstr, int length) {
-  if (length < 0) length = strlen(cstr);
+  if (length < 0) length = static_cast<int>(strlen(cstr));
   LPSTR str   = new CHAR[length + 1];
   str[length] = '\0';
   memcpy(str, cstr, length);
@@ -135,13 +135,13 @@ LPSTR Window::strdup(LPCSTR cstr, int length) {
 void Window::fetchPositionAndSize() {
   auto pos = POINT{};
   ClientToScreen(mWindowHandle, &pos);
-  mXPos = pos.x;
-  mYPos = pos.y;
+  mXPos = static_cast<WORD>(pos.x);
+  mYPos = static_cast<WORD>(pos.y);
 
   auto area = RECT{};
   GetClientRect(mWindowHandle, &area);
-  mWidth  = area.right;
-  mHeight = area.bottom;
+  mWidth  = static_cast<WORD>(area.right);
+  mHeight = static_cast<WORD>(area.bottom);
 }
 
 LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -214,7 +214,7 @@ LRESULT Window::windowProcedure(HWND windowHandle, UINT msg, WPARAM wParam, LPAR
     BOOL released = (keyFlags & KF_UP) == KF_UP;
     WORD scanCode = keyFlags & (0xFF | KF_EXTENDED);
     if (!scanCode) {
-      scanCode = MapVirtualKeyW(static_cast<UINT>(wParam), MAPVK_VK_TO_VSC);
+      scanCode = static_cast<WORD>(MapVirtualKeyW(static_cast<UINT>(wParam), MAPVK_VK_TO_VSC));
     }
 
     if (scanCode == 0x54) scanCode = 0x137;

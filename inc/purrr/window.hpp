@@ -37,7 +37,9 @@ public:
 public:
   virtual int getTitle(char *title, int length) const = 0;
 public:
-  std::pair<int, int> getCursorPosition() const { return std::make_pair(mCursorX, mCursorY); }
+  std::pair<int, int> getCursorPosition() const {
+    return std::make_pair(static_cast<int>(mCursorX), static_cast<int>(mCursorY));
+  }
 public:
   bool isMouseButtonDown(MouseButton btn) const { return mMouseButtons[(size_t)btn]; }
   bool isMouseButtonUp(MouseButton btn) const { return !mMouseButtons[(size_t)btn]; }

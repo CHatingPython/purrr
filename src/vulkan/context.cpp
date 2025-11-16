@@ -118,20 +118,19 @@ bool Context::record(purrr::Window *window, const RecordClear &clear) {
   uint32_t imageIndex = 0;
   VkResult result     = VK_SUCCESS;
 
-  for (bool check = false;; check = true) {
-    result = vkAcquireNextImageKHR(
-        mDevice,
-        vkWindow->getSwapchain(),
-        std::numeric_limits<uint64_t>::max(),
-        vkWindow->getImageSemaphore(),
-        VK_NULL_HANDLE,
-        &imageIndex);
+  result = vkAcquireNextImageKHR(
+      mDevice,
+      vkWindow->getSwapchain(),
+      std::numeric_limits<uint64_t>::max(),
+      vkWindow->getImageSemaphore(),
+      VK_NULL_HANDLE,
+      &imageIndex);
 
-    if (check || result != VK_ERROR_OUT_OF_DATE_KHR) break;
+  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     mRecreateQueue.push(vkWindow);
     return false;
-  }
-  if (result != VK_SUBOPTIMAL_KHR) expectResult("Next image acquire", result);
+  } else if (result != VK_SUBOPTIMAL_KHR)
+    expectResult("Next image acquire", result);
 
   mRecording = true;
   mWindows.push_back(vkWindow);
