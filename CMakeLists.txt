@@ -18,6 +18,11 @@ target_include_directories(purrr
     $<INSTALL_INTERFACE:include>)
 target_link_libraries(purrr PRIVATE Vulkan::Vulkan)
 
+target_compile_options(purrr PRIVATE
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+
 target_compile_definitions(purrr PRIVATE _PURRR_PLATFORM=win32 _PURRR_BACKEND_VULKAN)
 
 add_executable(example example/main.cpp)

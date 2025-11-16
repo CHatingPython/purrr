@@ -6,6 +6,7 @@
 namespace purrr::win32 {
 
 Context::Context(const ContextInfo &info) {
+  (void)info;
   GetModuleHandleExW(
       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
       reinterpret_cast<LPCWSTR>(this),

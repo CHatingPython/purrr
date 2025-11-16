@@ -34,7 +34,7 @@ namespace vulkan {
   public:
     virtual std::pair<int, int> getSize() const override { return purrr::platform::Window::getSize(); }
   public:
-    bool sameContext(Context *context) const { return mContext; }
+    bool sameContext(Context *context) const { return context == mContext; }
   public:
     VkSurfaceKHR         getSurface() const { return mSurface; }
     VkFormat             getFormat() const { return mFormat; }
