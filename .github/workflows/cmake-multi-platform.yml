@@ -45,6 +45,9 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+
     - name: Configure CMake
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
@@ -52,9 +55,6 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
-
-    - name: Install Vulkan SDK
-      uses: jakoch/install-vulkan-sdk-action@v1
 
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
