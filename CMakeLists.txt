@@ -15,8 +15,11 @@ set(PURRR_DEFINES "")
 # 
 if(WIN32)
   message(STATUS "Platform: Windows")
+  list(APPEND PURRR_DEFINES _PURRR_PLATFORM_WIN32)
 elseif(UNIX AND NOT APPLE)
   message(STATUS "Platform: Linux")
+  list(APPEND PURRR_DEFINES _PURRR_PLATFORM_LINUX)
+
   find_package(X11)
 
   option(PURRR_X11_SUPPORT "Enable X11 support" ${X11_FOUND})
