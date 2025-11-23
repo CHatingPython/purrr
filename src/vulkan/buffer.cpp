@@ -5,6 +5,8 @@
 #include "purrr/vulkan/buffer.hpp"
 #include "purrr/vulkan/context.hpp"
 
+#include <cstring>
+
 namespace purrr::vulkan {
 
 Buffer::Buffer(Context *context, const BufferInfo &info)

@@ -8,6 +8,7 @@
 #include "purrr/vulkan/format.hpp"
 
 #include <stdexcept>
+#include <cstring>
 #include <vulkan/vulkan_core.h>
 
 namespace purrr::vulkan {

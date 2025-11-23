@@ -5,6 +5,8 @@
 #include "purrr/object.hpp"
 #include "purrr/sampler.hpp"
 
+#include <cstddef>
+
 namespace purrr {
 
 enum class ImageTiling {
