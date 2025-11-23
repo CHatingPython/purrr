@@ -14,7 +14,7 @@
 
 #include "purrr/event.hpp"
 
-namespace purrr {
+namespace purrr::platform {
 namespace win32 {
 
   class Context : public purrr::Context {
@@ -60,7 +60,7 @@ namespace win32 {
   };
 
 } // namespace win32
-} // namespace purrr
+} // namespace purrr::platform
 
 #endif // _PURRR_WIN32_CONTEXT_HPP_
 

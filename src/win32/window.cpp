@@ -11,7 +11,7 @@
 
 #undef min
 
-namespace purrr::win32 {
+namespace purrr::platform::win32 {
 
 Window::Window(Context *context, const WindowInfo &info)
   : mContext(context) {
@@ -272,6 +272,6 @@ VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
 }
 #endif
 
-} // namespace purrr::win32
+} // namespace purrr::platform::win32
 
 #endif // _PURRR_PLATFORM_WIN32

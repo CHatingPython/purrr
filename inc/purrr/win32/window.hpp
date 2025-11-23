@@ -14,7 +14,7 @@
 #include <vulkan/vulkan.h>
 #endif
 
-namespace purrr {
+namespace purrr::platform {
 namespace win32 {
 
   class Context;
@@ -69,7 +69,7 @@ namespace win32 {
   };
 
 } // namespace win32
-} // namespace purrr
+} // namespace purrr::platform
 
 #endif // _PURRR_WIN32_WINDOW_HPP_
 

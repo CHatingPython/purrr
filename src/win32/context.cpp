@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-namespace purrr::win32 {
+namespace purrr::platform::win32 {
 
 Context::Context(const ContextInfo &info) {
   (void)info;
@@ -190,6 +190,6 @@ void Context::appendRequiredVulkanExtensions(std::vector<const char *> &extensio
   extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 }
 
-} // namespace purrr::win32
+} // namespace purrr::platform::win32
 
 #endif // _PURRR_PLATFORM_WIN32
