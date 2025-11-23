@@ -18,9 +18,9 @@ enum class SamplerAddressMode {
 };
 
 struct SamplerInfo {
-  Filter magFilter;
-  Filter minFilter;
-  Filter mipFilter;
+  Filter             magFilter;
+  Filter             minFilter;
+  Filter             mipFilter;
   SamplerAddressMode addressModeU;
   SamplerAddressMode addressModeV;
   SamplerAddressMode addressModeW;

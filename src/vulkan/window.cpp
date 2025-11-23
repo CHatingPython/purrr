@@ -123,7 +123,8 @@ void Window::createSwapchain() {
   }
 
   uint32_t minImageCount = capabilities.minImageCount + 1;
-  if (capabilities.maxImageCount > 0 && minImageCount > capabilities.maxImageCount) minImageCount = capabilities.maxImageCount;
+  if (capabilities.maxImageCount > 0 && minImageCount > capabilities.maxImageCount)
+    minImageCount = capabilities.maxImageCount;
 
   auto createInfo = VkSwapchainCreateInfoKHR{ .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                                               .pNext                 = VK_NULL_HANDLE,

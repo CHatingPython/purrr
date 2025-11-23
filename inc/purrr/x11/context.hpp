@@ -17,8 +17,8 @@ namespace purrr::platform {
 inline namespace x11 {
 
   using XDisplay = ::Display;
-  using XWindow = ::Window;
-  using XAtom = ::Atom;
+  using XWindow  = ::Window;
+  using XAtom    = ::Atom;
 
   class Window;
   class Context : public purrr::Context {
@@ -43,18 +43,18 @@ inline namespace x11 {
     virtual double getTime() const override;
   public:
     XDisplay *getDisplay() const { return mDisplay; }
-    XContext getContext() const { return mContext; }
-    XAtom getWmProtocolsAtom() const { return aWmProtocols; }
-    XAtom getDeleteWindowAtom() const { return aDeleteWindow; }
-    XAtom getNetWmNameAtom() const { return aNetWmName; }
-    XAtom getUtf8StringAtom() const { return aUtf8String; }
+    XContext  getContext() const { return mContext; }
+    XAtom     getWmProtocolsAtom() const { return aWmProtocols; }
+    XAtom     getDeleteWindowAtom() const { return aDeleteWindow; }
+    XAtom     getNetWmNameAtom() const { return aNetWmName; }
+    XAtom     getUtf8StringAtom() const { return aUtf8String; }
   private:
-    XDisplay *mDisplay = nullptr;
-    XContext mContext = 0;
-    XAtom aWmProtocols = 0;
-    XAtom aDeleteWindow = 0;
-    XAtom aNetWmName = 0;
-    XAtom aUtf8String = 0;
+    XDisplay *mDisplay      = nullptr;
+    XContext  mContext      = 0;
+    XAtom     aWmProtocols  = 0;
+    XAtom     aDeleteWindow = 0;
+    XAtom     aNetWmName    = 0;
+    XAtom     aUtf8String   = 0;
   private:
     KeyCode mKeyCodes[256];
   private:

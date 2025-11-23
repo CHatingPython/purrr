@@ -48,9 +48,9 @@ inline namespace x11 {
     virtual void setTitle(const char *title, int titleLength) override;
   private:
     Context *mContext = nullptr;
-    int      mWidth   = 0, mHeight = 0;
-    int      mXPos    = 0, mYPos = 0;
-    XWindow  mWindow  = 0;
+    int      mWidth = 0, mHeight = 0;
+    int      mXPos = 0, mYPos = 0;
+    XWindow  mWindow = 0;
   private:
     void createWindow(const WindowInfo &info);
   protected:
