@@ -37,6 +37,22 @@ if(PURRR_VULKAN_SUPPORT)
 endif()
 
 # 
+# Platform: X11
+# 
+if(PURRR_X11_SUPPORT)
+  if(NOT UNIX OR APPLE)
+    message(FATAL_ERROR "X11 can only be enabled on Linux.")
+  elseif(NOT X11_FOUND)
+    message(FATAL_ERROR "X11 has not been found.")
+  endif()
+
+  list(APPEND PURRR_LIBRARIES ${X11_LIBRARIES})
+  list(APPEND PURRR_INCLUDES ${X11_INCLUDE_DIR})
+
+  list(APPEND PURRR_DEFINES _PURRR_PLATFORM_X11)
+endif()
+
+# 
 # purrr
 # 
 set(CMAKE_CXX_STANDARD 20)
