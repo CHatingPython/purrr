@@ -15,7 +15,7 @@
 #include "purrr/event.hpp"
 
 namespace purrr::platform {
-namespace win32 {
+inline namespace win32 {
 
   class Context : public purrr::Context {
   public:

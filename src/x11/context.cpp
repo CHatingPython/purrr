@@ -8,7 +8,8 @@
 
 #include <X11/XKBlib.h>
 
-namespace purrr::platform::x11 {
+namespace purrr::platform {
+inline namespace x11 {
 
 Context::Context(const ContextInfo &info) {
   (void)info;
@@ -317,6 +318,7 @@ void Context::appendRequiredVulkanExtensions(std::vector<const char *> &extensio
 }
 #endif // _PURRR_BACKEND_VULKAN
 
+}
 } // namespace purrr::platform::x11
 
 #endif // _PURRR_PLATFORM_X11

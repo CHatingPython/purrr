@@ -17,7 +17,7 @@
 #endif
 
 namespace purrr::platform {
-namespace x11 {
+inline namespace x11 {
 
   class Context;
   class Window : public purrr::Window {

@@ -15,7 +15,7 @@
 #endif
 
 namespace purrr::platform {
-namespace win32 {
+inline namespace win32 {
 
   class Context;
   class Window : public purrr::Window {

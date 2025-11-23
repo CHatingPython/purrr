@@ -14,7 +14,7 @@
 #include <X11/Xresource.h>
 
 namespace purrr::platform {
-namespace x11 {
+inline namespace x11 {
 
   using XDisplay = ::Display;
   using XWindow = ::Window;

@@ -9,7 +9,8 @@
 
 #undef min
 
-namespace purrr::platform::x11 {
+namespace purrr::platform {
+inline namespace x11 {
 
 Window::Window(Context *context, const WindowInfo &info)
   : mContext(context) {
@@ -107,6 +108,7 @@ VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
 }
 #endif
 
+}
 } // namespace purrr::platform::x11
 
 #endif // _PURRR_PLATFORM_X11
