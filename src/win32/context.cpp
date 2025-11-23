@@ -1,3 +1,5 @@
+#ifdef _PURRR_PLATFORM_WIN32
+
 #include "purrr/win32/context.hpp"
 #include "purrr/win32/window.hpp"
 
@@ -189,3 +191,5 @@ void Context::appendRequiredVulkanExtensions(std::vector<const char *> &extensio
 }
 
 } // namespace purrr::win32
+
+#endif // _PURRR_PLATFORM_WIN32

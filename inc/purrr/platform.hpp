@@ -6,7 +6,7 @@
 
 namespace purrr {
 
-#if _PURRR_PLATFORM == win32
+#if defined(_PURRR_PLATFORM_WIN32)
 namespace platform = win32;
 #else
 #error "No platform selected!"

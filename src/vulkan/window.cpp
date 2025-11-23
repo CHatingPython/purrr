@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/window.hpp"
@@ -260,3 +262,5 @@ bool Window::recreateSwapchain() {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

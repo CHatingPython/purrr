@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/format.hpp"
 #include <stdexcept>
 
@@ -281,3 +283,5 @@ Format format(VkFormat vkFormat) {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

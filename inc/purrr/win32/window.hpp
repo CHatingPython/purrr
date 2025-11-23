@@ -1,3 +1,5 @@
+#ifdef _PURRR_PLATFORM_WIN32
+
 #ifndef _PURRR_WIN32_WINDOW_HPP_
 #define _PURRR_WIN32_WINDOW_HPP_
 
@@ -70,3 +72,5 @@ namespace win32 {
 } // namespace purrr
 
 #endif // _PURRR_WIN32_WINDOW_HPP_
+
+#endif // _PURRR_PLATFORM_WIN32

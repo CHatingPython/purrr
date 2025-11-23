@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/program.hpp"
@@ -281,3 +283,5 @@ void Program::createPipeline(const ProgramInfo &info) {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

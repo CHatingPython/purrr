@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/renderTarget.hpp"
@@ -110,3 +112,5 @@ void RenderTarget::createFramebuffer(const RenderTargetInfo &info) {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

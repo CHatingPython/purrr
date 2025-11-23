@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #ifndef _PURRR_VULKAN_RENDER_TARGET_HPP_
 #define _PURRR_VULKAN_RENDER_TARGET_HPP_
 
@@ -46,3 +48,5 @@ namespace vulkan {
 } // namespace purrr
 
 #endif // _PURRR_VULKAN_RENDER_TARGET_HPP_
+
+#endif // _PURRR_BACKEND_VULKAN

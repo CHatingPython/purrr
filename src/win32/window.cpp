@@ -1,3 +1,5 @@
+#ifdef _PURRR_PLATFORM_WIN32
+
 #include "purrr/win32/context.hpp"
 #include "purrr/win32/window.hpp"
 
@@ -271,3 +273,5 @@ VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
 #endif
 
 } // namespace purrr::win32
+
+#endif // _PURRR_PLATFORM_WIN32

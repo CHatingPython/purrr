@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 namespace purrr::vulkan {
@@ -7,3 +9,5 @@ void expectResult(const char *where, VkResult result, VkResult excepted) {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

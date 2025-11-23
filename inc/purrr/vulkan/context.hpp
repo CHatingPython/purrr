@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #ifndef _PURRR_VULKAN_CONTEXT_HPP_
 #define _PURRR_VULKAN_CONTEXT_HPP_
 
@@ -135,3 +137,5 @@ namespace vulkan {
 } // namespace purrr
 
 #endif // _PURRR_VULKAN_CONTEXT_HPP_
+
+#endif // _PURRR_BACKEND_VULKAN

@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/sampler.hpp"
@@ -55,3 +57,5 @@ Sampler::~Sampler() {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #ifndef _PURRR_VULKAN_SAMPLER_HPP_
 #define _PURRR_VULKAN_SAMPLER_HPP_
 
@@ -7,7 +9,7 @@
 namespace purrr {
 namespace vulkan {
 
-  VkFilter vkFilter(Filter filter);
+  VkFilter             vkFilter(Filter filter);
   VkSamplerAddressMode vkSamplerAddressMode(SamplerAddressMode addressMode);
 
   class Sampler : public purrr::Sampler {
@@ -27,3 +29,5 @@ namespace vulkan {
 } // namespace purrr
 
 #endif // _PURRR_VULKAN_SAMPLER_HPP_
+
+#endif // _PURRR_BACKEND_VULKAN

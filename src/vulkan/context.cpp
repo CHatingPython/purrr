@@ -1,3 +1,5 @@
+#ifdef _PURRR_BACKEND_VULKAN
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/context.hpp"
@@ -754,3 +756,5 @@ void Context::submitSingleTimeCommands(VkCommandBuffer commandBuffer) {
 }
 
 } // namespace purrr::vulkan
+
+#endif // _PURRR_BACKEND_VULKAN

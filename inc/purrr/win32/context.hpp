@@ -1,4 +1,4 @@
-#if _PURRR_PLATFORM == win32
+#ifdef _PURRR_PLATFORM_WIN32
 
 #ifndef _PURRR_WIN32_CONTEXT_HPP_
 #define _PURRR_WIN32_CONTEXT_HPP_
@@ -64,4 +64,4 @@ namespace win32 {
 
 #endif // _PURRR_WIN32_CONTEXT_HPP_
 
-#endif // _PURRR_PLATFORM == win32
+#endif // _PURRR_PLATFORM_WIN32
