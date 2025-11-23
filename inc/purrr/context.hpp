@@ -46,7 +46,6 @@ struct RecordClear {
 };
 
 enum class IndexType {
-  U8,
   U16,
   U32
 };

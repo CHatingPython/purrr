@@ -23,7 +23,6 @@ namespace purrr::vulkan {
 
 VkIndexType vkIndexType(IndexType type) {
   switch (type) {
-  case IndexType::U8: return VK_INDEX_TYPE_UINT8;
   case IndexType::U16: return VK_INDEX_TYPE_UINT16;
   case IndexType::U32: return VK_INDEX_TYPE_UINT32;
   }
