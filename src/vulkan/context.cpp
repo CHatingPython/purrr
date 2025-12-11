@@ -1,5 +1,7 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/context.hpp"
@@ -27,7 +29,7 @@ VkIndexType vkIndexType(IndexType type) {
   case IndexType::U32: return VK_INDEX_TYPE_UINT32;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 Context::Context(const ContextInfo &info)
@@ -112,7 +114,7 @@ void Context::begin() {
 bool Context::record(purrr::Window *window, const RecordClear &clear) {
   if (window->api() != api()) return false;
   // TODO: Introduce InvalidUse exception
-  if (mRecording) throw std::runtime_error("Cannot record before calling end()");
+  if (mRecording) throw InvalidUse("Cannot record before calling end()");
 
   Window *vkWindow = reinterpret_cast<Window *>(window);
   if (!vkWindow->sameContext(this)) return false;
@@ -176,7 +178,7 @@ bool Context::record(purrr::Window *window, const RecordClear &clear) {
 bool Context::record(purrr::RenderTarget *target, const RecordClear &clear) {
   if (target->api() != api()) return false;
   // TODO: Introduce InvalidUse exception
-  if (mRecording) throw std::runtime_error("Cannot record before calling end()");
+  if (mRecording) throw InvalidUse("Cannot record before calling end()");
 
   RenderTarget *vkTarget = reinterpret_cast<RenderTarget *>(target);
   if (!vkTarget->sameContext(this)) return false;
@@ -216,22 +218,22 @@ bool Context::record(purrr::RenderTarget *target, const RecordClear &clear) {
 }
 
 void Context::useProgram(purrr::Program *program) {
-  if (!mRecording) throw std::runtime_error("useProgram() called before record()");
+  if (!mRecording) throw InvalidUse("useProgram() called before record()");
 
-  if (program->api() != Api::Vulkan) throw std::runtime_error("Uncompatible program object");
+  if (program->api() != Api::Vulkan) throw InvalidUse("Uncompatible program object");
   Program *vkProgram = reinterpret_cast<Program *>(program);
-  if (!vkProgram->sameRenderTarget(mWindows.back())) throw std::runtime_error("Uncompatible program object");
+  if (!vkProgram->sameRenderTarget(mWindows.back())) throw InvalidUse("Uncompatible program object");
   mProgram = vkProgram;
 
   vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkProgram->getPipeline());
 }
 
 void Context::useVertexBuffer(purrr::Buffer *buffer, uint32_t index) {
-  if (!mRecording) throw std::runtime_error("useVertexBuffer() called before record()");
+  if (!mRecording) throw InvalidUse("useVertexBuffer() called before record()");
 
-  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  if (buffer->api() != Api::Vulkan) throw InvalidUse("Uncompatible buffer object");
   Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
-  if (vkBuffer->getType() != BufferType::Vertex) throw std::runtime_error("Uncompatible buffer object");
+  if (vkBuffer->getType() != BufferType::Vertex) throw InvalidUse("Uncompatible buffer object");
 
   VkBuffer     buffers[1] = { vkBuffer->getBuffer() };
   VkDeviceSize offsets[1] = { 0 };
@@ -239,21 +241,21 @@ void Context::useVertexBuffer(purrr::Buffer *buffer, uint32_t index) {
 }
 
 void Context::useIndexBuffer(purrr::Buffer *buffer, IndexType type) {
-  if (!mRecording) throw std::runtime_error("useIndexBuffer() called before record()");
+  if (!mRecording) throw InvalidUse("useIndexBuffer() called before record()");
 
-  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  if (buffer->api() != Api::Vulkan) throw InvalidUse("Uncompatible buffer object");
   Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
-  if (vkBuffer->getType() != BufferType::Index) throw std::runtime_error("Uncompatible buffer object");
+  if (vkBuffer->getType() != BufferType::Index) throw InvalidUse("Uncompatible buffer object");
 
   vkCmdBindIndexBuffer(mCommandBuffer, vkBuffer->getBuffer(), 0, vkIndexType(type));
 }
 
 void Context::useUniformBuffer(purrr::Buffer *buffer, uint32_t index) {
-  if (!mRecording) throw std::runtime_error("useUniformBuffer() called before record()");
+  if (!mRecording) throw InvalidUse("useUniformBuffer() called before record()");
 
-  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  if (buffer->api() != Api::Vulkan) throw InvalidUse("Uncompatible buffer object");
   Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
-  if (vkBuffer->getType() != BufferType::Uniform) throw std::runtime_error("Uncompatible buffer object");
+  if (vkBuffer->getType() != BufferType::Uniform) throw InvalidUse("Uncompatible buffer object");
 
   VkDescriptorSet sets[1] = { vkBuffer->getDescriptorSet() };
   vkCmdBindDescriptorSets(
@@ -268,11 +270,11 @@ void Context::useUniformBuffer(purrr::Buffer *buffer, uint32_t index) {
 }
 
 void Context::useStorageBuffer(purrr::Buffer *buffer, uint32_t index) {
-  if (!mRecording) throw std::runtime_error("useStorageBuffer() called before record()");
+  if (!mRecording) throw InvalidUse("useStorageBuffer() called before record()");
 
-  if (buffer->api() != Api::Vulkan) throw std::runtime_error("Uncompatible buffer object");
+  if (buffer->api() != Api::Vulkan) throw InvalidUse("Uncompatible buffer object");
   Buffer *vkBuffer = reinterpret_cast<Buffer *>(buffer);
-  if (vkBuffer->getType() != BufferType::Storage) throw std::runtime_error("Uncompatible buffer object");
+  if (vkBuffer->getType() != BufferType::Storage) throw InvalidUse("Uncompatible buffer object");
 
   VkDescriptorSet sets[1] = { vkBuffer->getDescriptorSet() };
   vkCmdBindDescriptorSets(
@@ -287,12 +289,12 @@ void Context::useStorageBuffer(purrr::Buffer *buffer, uint32_t index) {
 }
 
 void Context::useTextureImage(purrr::Image *image, uint32_t index) {
-  if (!mRecording) throw std::runtime_error("useTextureImage() called before record()");
-  if (!mProgram) throw std::runtime_error("useTextureImage() called before useProgram()");
+  if (!mRecording) throw InvalidUse("useTextureImage() called before record()");
+  if (!mProgram) throw InvalidUse("useTextureImage() called before useProgram()");
 
-  if (image->api() != Api::Vulkan) throw std::runtime_error("Uncompatible image object");
+  if (image->api() != Api::Vulkan) throw InvalidUse("Uncompatible image object");
   Image *vkImage = reinterpret_cast<Image *>(image);
-  if (!vkImage->getUsage().texture) throw std::runtime_error("Uncompatible image object");
+  if (!vkImage->getUsage().texture) throw InvalidUse("Uncompatible image object");
 
   VkDescriptorSet sets[1] = { vkImage->getDescriptorSet() };
   vkCmdBindDescriptorSets(
@@ -307,26 +309,26 @@ void Context::useTextureImage(purrr::Image *image, uint32_t index) {
 }
 
 void Context::draw(size_t vertexCount, size_t instanceCount) {
-  if (!mRecording) throw std::runtime_error("draw() called before record()");
+  if (!mRecording) throw InvalidUse("draw() called before record()");
 
   vkCmdDraw(mCommandBuffer, static_cast<uint32_t>(vertexCount), static_cast<uint32_t>(instanceCount), 0, 0);
 }
 
 void Context::drawIndexed(size_t indexCount, size_t instanceCount) {
-  if (!mRecording) throw std::runtime_error("draw() called before record()");
+  if (!mRecording) throw InvalidUse("draw() called before record()");
 
   vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(indexCount), static_cast<uint32_t>(instanceCount), 0, 0, 0);
 }
 
 void Context::end() {
-  if (!mRecording) throw std::runtime_error("end() called before record()");
+  if (!mRecording) throw InvalidUse("end() called before record()");
   mRecording = false;
   vkCmdEndRenderPass(mCommandBuffer);
 }
 
 void Context::submit() {
   vkEndCommandBuffer(mCommandBuffer);
-  if (mRecording) throw std::runtime_error("Cannot submit while recording");
+  if (mRecording) throw InvalidUse("Cannot submit while recording");
 
   std::vector<VkPipelineStageFlags> stageMasks(mImageSemaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
@@ -345,7 +347,7 @@ void Context::submit() {
 }
 
 void Context::present(bool preventSpinning) {
-  if (mRecording) throw std::runtime_error("Cannot present while recording");
+  if (mRecording) throw InvalidUse("Cannot present while recording");
 
   std::vector<VkResult> results(mSwapchains.size(), VK_SUCCESS);
 

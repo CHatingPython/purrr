@@ -1,12 +1,13 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/renderTarget.hpp"
 #include "purrr/vulkan/program.hpp"
 #include "purrr/vulkan/format.hpp"
 
-#include <stdexcept>
 #include <vector>
 
 namespace purrr::vulkan {
@@ -16,9 +17,9 @@ RenderTarget::RenderTarget(Context *context, const RenderTargetInfo &info)
   mImages.reserve(info.imageCount);
   for (size_t i = 0; i < info.imageCount; ++i) {
     purrr::Image *image = info.images[i];
-    if (image->api() != api()) throw std::runtime_error("Uncompatible image object");
+    if (image->api() != api()) throw InvalidUse("Uncompatible image object");
     Image *vkImage = reinterpret_cast<Image *>(image);
-    if (!vkImage->getUsage().renderTarget) throw std::runtime_error("Uncompatible image object");
+    if (!vkImage->getUsage().renderTarget) throw InvalidUse("Uncompatible image object");
     mImages.push_back(vkImage);
   }
 

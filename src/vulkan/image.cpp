@@ -1,5 +1,7 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/image.hpp"
@@ -7,7 +9,6 @@
 #include "purrr/vulkan/sampler.hpp"
 #include "purrr/vulkan/format.hpp"
 
-#include <stdexcept>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
 
@@ -19,7 +20,7 @@ VkImageTiling vkImageTiling(ImageTiling tiling) {
   case ImageTiling::Optimal: return VK_IMAGE_TILING_OPTIMAL;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 Image::Image(Context *context, const ImageInfo &info)
@@ -139,7 +140,7 @@ void Image::createImageView(const ImageInfo &info) {
 }
 
 void Image::allocateDescriptorSet(purrr::Sampler *sampler) {
-  if (sampler->api() != Api::Vulkan) throw std::runtime_error("Uncompatible sampler object");
+  if (sampler->api() != Api::Vulkan) throw InvalidUse("Uncompatible sampler object");
   Sampler *vkSampler = reinterpret_cast<Sampler *>(sampler);
 
   auto layout = mContext->getTextureDescriptorSetLayout();

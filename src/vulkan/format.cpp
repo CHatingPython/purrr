@@ -1,7 +1,8 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/format.hpp"
-#include <stdexcept>
 
 namespace purrr::vulkan {
 
@@ -140,7 +141,7 @@ VkFormat vkFormat(Format format) {
   case Format::D32SfloatS8Uint: return VK_FORMAT_D32_SFLOAT_S8_UINT;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 Format format(VkFormat vkFormat) {
@@ -277,7 +278,7 @@ Format format(VkFormat vkFormat) {
   case VK_FORMAT_D24_UNORM_S8_UINT: return Format::D24UnormS8Uint;
   case VK_FORMAT_D32_SFLOAT_S8_UINT: return Format::D32SfloatS8Uint;
   default: {
-    throw std::runtime_error("No conversion");
+    throw InvalidUse("No conversion");
   }
   }
 }

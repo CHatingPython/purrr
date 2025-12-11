@@ -1,10 +1,10 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/sampler.hpp"
-
-#include <stdexcept>
 
 namespace purrr::vulkan {
 
@@ -14,7 +14,7 @@ VkFilter vkFilter(Filter filter) {
   case Filter::Linear: return VK_FILTER_LINEAR;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 VkSamplerAddressMode vkSamplerAddressMode(SamplerAddressMode addressMode) {
@@ -25,7 +25,7 @@ VkSamplerAddressMode vkSamplerAddressMode(SamplerAddressMode addressMode) {
   case SamplerAddressMode::ClampToBorder: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 Sampler::Sampler(Context *context, const SamplerInfo &info)

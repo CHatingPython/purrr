@@ -1,5 +1,7 @@
 #ifdef _PURRR_BACKEND_VULKAN
 
+#include "purrr/exceptions.hpp"
+
 #include "purrr/vulkan/exceptions.hpp"
 
 #include "purrr/vulkan/program.hpp"
@@ -8,7 +10,6 @@
 
 #include "purrr/vulkan/format.hpp"
 
-#include <stdexcept>
 #include <vector>
 #include <array>
 
@@ -20,7 +21,7 @@ VkShaderStageFlagBits vkShaderType(ShaderType type) {
   case ShaderType::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 VkVertexInputRate vkVertexInputRate(VertexInputRate inputRate) {
@@ -29,7 +30,7 @@ VkVertexInputRate vkVertexInputRate(VertexInputRate inputRate) {
   case VertexInputRate::Instance: return VK_VERTEX_INPUT_RATE_INSTANCE;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 VkPrimitiveTopology vkTopology(Topology topology) {
@@ -41,7 +42,7 @@ VkPrimitiveTopology vkTopology(Topology topology) {
   case Topology::TriangleStrip: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 VkCullModeFlagBits vkCullMode(CullMode cullMode) {
@@ -51,7 +52,7 @@ VkCullModeFlagBits vkCullMode(CullMode cullMode) {
   case CullMode::Both: return VK_CULL_MODE_FRONT_AND_BACK;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 VkFrontFace vkFrontFace(FrontFace frontFace) {
@@ -60,7 +61,7 @@ VkFrontFace vkFrontFace(FrontFace frontFace) {
   case FrontFace::CounterClockwise: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
   }
 
-  throw std::runtime_error("Unreachable");
+  throw Unreachable();
 }
 
 Shader::Shader(Context *context, const ShaderInfo &info)
@@ -128,7 +129,7 @@ void Program::createPipeline(const ProgramInfo &info) {
 
   for (size_t i = 0; i < info.shaderCount; ++i) {
     auto shader = info.shaders[i];
-    if (shader->api() != Api::Vulkan) throw std::runtime_error("Uncompatible shader object");
+    if (shader->api() != Api::Vulkan) throw InvalidUse("Uncompatible shader object");
     auto vkShader = reinterpret_cast<const Shader *>(shader);
 
     stages.push_back({ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

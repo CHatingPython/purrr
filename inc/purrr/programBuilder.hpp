@@ -6,7 +6,6 @@
 
 #include "purrr/program.hpp"
 #include "purrr/purrr.hpp"
-#include "purrr/window.hpp"
 
 namespace purrr {
 
