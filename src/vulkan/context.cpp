@@ -366,8 +366,9 @@ void Context::present(bool preventSpinning) {
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
       for (size_t i = 0; i < results.size(); ++i) {
         result = results[i];
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        if (mWindows[i]->mDirty || result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
           mRecreateQueue.push(mWindows[i]);
+          mWindows[i]->mDirty = false;
         }
       }
     } else {

@@ -21,7 +21,12 @@ struct WindowInfo {
   int         yPos        = -1;
 };
 
+namespace vulkan {
+  class Context;
+}
+
 class Window : public RenderTarget {
+  friend class vulkan::Context;
 private:
   using EventCallback = std::function<void(Window *, const Event *)>;
 public:
@@ -57,12 +62,16 @@ private:
   std::bitset<(size_t)MouseButton::Count> mMouseButtons = {};
   std::bitset<(size_t)KeyCode::Count>     mKeys         = {};
   bool                                    mShouldClose  = false;
+  bool                                    mDirty        = false;
 private:
   std::vector<EventCallback> mCallbacks = {};
 protected:
   void inputWindowMove(int nx, int ny) { announceEvent(new events::WindowMoveEvent(nx, ny)); }
 
-  void inputWindowResize(int nw, int nh) { announceEvent(new events::WindowResizeEvent(nw, nh)); }
+  void inputWindowResize(int nw, int nh) {
+    mDirty = true;
+    announceEvent(new events::WindowResizeEvent(nw, nh));
+  }
 
   void inputMouseMove(double nx, double ny) {
     mCursorX = nx;
