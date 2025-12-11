@@ -55,7 +55,7 @@ endif()
 # 
 # purrr
 # 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE SRCS "src/**.cpp")
 file(GLOB_RECURSE HDRS "inc/**.hpp")

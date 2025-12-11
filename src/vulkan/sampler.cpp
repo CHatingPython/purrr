@@ -30,24 +30,25 @@ VkSamplerAddressMode vkSamplerAddressMode(SamplerAddressMode addressMode) {
 
 Sampler::Sampler(Context *context, const SamplerInfo &info)
   : mContext(context) {
-  auto createInfo = VkSamplerCreateInfo{ .sType            = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                                         .pNext            = VK_NULL_HANDLE,
-                                         .flags            = 0,
-                                         .magFilter        = vkFilter(info.magFilter),
-                                         .minFilter        = vkFilter(info.minFilter),
-                                         .mipmapMode       = static_cast<VkSamplerMipmapMode>(vkFilter(info.mipFilter)),
-                                         .addressModeU     = vkSamplerAddressMode(info.addressModeU),
-                                         .addressModeV     = vkSamplerAddressMode(info.addressModeV),
-                                         .addressModeW     = vkSamplerAddressMode(info.addressModeW),
-                                         .mipLodBias       = 0.0f,
-                                         .anisotropyEnable = VK_FALSE,
-                                         .maxAnisotropy    = 0.0f,
-                                         .compareEnable    = VK_FALSE,
-                                         .compareOp        = VK_COMPARE_OP_NEVER,
-                                         .minLod           = 0.0f,
-                                         .maxLod           = 1.0f,
-                                         .borderColor      = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-                                         .unnormalizedCoordinates = VK_FALSE };
+  VkSamplerCreateInfo createInfo{};
+  createInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  createInfo.pNext                   = VK_NULL_HANDLE;
+  createInfo.flags                   = 0;
+  createInfo.magFilter               = vkFilter(info.magFilter);
+  createInfo.minFilter               = vkFilter(info.minFilter);
+  createInfo.mipmapMode              = static_cast<VkSamplerMipmapMode>(vkFilter(info.mipFilter));
+  createInfo.addressModeU            = vkSamplerAddressMode(info.addressModeU);
+  createInfo.addressModeV            = vkSamplerAddressMode(info.addressModeV);
+  createInfo.addressModeW            = vkSamplerAddressMode(info.addressModeW);
+  createInfo.mipLodBias              = 0.0f;
+  createInfo.anisotropyEnable        = VK_FALSE;
+  createInfo.maxAnisotropy           = 0.0f;
+  createInfo.compareEnable           = VK_FALSE;
+  createInfo.compareOp               = VK_COMPARE_OP_NEVER;
+  createInfo.minLod                  = 0.0f;
+  createInfo.maxLod                  = 1.0f;
+  createInfo.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+  createInfo.unnormalizedCoordinates = VK_FALSE;
 
   expectResult("Sampler creation", vkCreateSampler(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mSampler));
 }

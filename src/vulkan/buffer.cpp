@@ -59,7 +59,10 @@ void Buffer::copy(const void *data, size_t offset, size_t size) {
 
   VkCommandBuffer commandBuffer = mContext->beginSingleTimeCommands();
 
-  auto copyRegion = VkBufferCopy{ .srcOffset = 0, .dstOffset = offset, .size = size };
+  VkBufferCopy copyRegion{};
+  copyRegion.srcOffset = 0;
+  copyRegion.dstOffset = offset;
+  copyRegion.size      = size;
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, mBuffer, 1, &copyRegion);
 
   mContext->submitSingleTimeCommands(commandBuffer);
@@ -69,30 +72,33 @@ void Buffer::copy(const void *data, size_t offset, size_t size) {
 }
 
 void Buffer::allocateDescriptorSet(VkDescriptorType type, VkDescriptorSetLayout layout) {
-  auto allocateInfo = VkDescriptorSetAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                                                   .pNext              = VK_NULL_HANDLE,
-                                                   .descriptorPool     = mContext->getDescriptorPool(),
-                                                   .descriptorSetCount = 1,
-                                                   .pSetLayouts        = &layout };
+  VkDescriptorSetAllocateInfo allocateInfo{};
+  allocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocateInfo.pNext              = VK_NULL_HANDLE;
+  allocateInfo.descriptorPool     = mContext->getDescriptorPool();
+  allocateInfo.descriptorSetCount = 1;
+  allocateInfo.pSetLayouts        = &layout;
 
   expectResult(
       "Descriptor set allocation",
       vkAllocateDescriptorSets(mContext->getDevice(), &allocateInfo, &mDescriptorSet));
 
-  auto bufferInfo = VkDescriptorBufferInfo{ .buffer = mBuffer, .offset = 0, .range = mSize };
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = mBuffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range  = mSize;
 
-  auto write = VkWriteDescriptorSet{
-    .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-    .pNext            = VK_NULL_HANDLE,
-    .dstSet           = mDescriptorSet,
-    .dstBinding       = 0,
-    .dstArrayElement  = 0,
-    .descriptorCount  = 1,
-    .descriptorType   = type,
-    .pImageInfo       = VK_NULL_HANDLE,
-    .pBufferInfo      = &bufferInfo,
-    .pTexelBufferView = VK_NULL_HANDLE,
-  };
+  VkWriteDescriptorSet write{};
+  write.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.pNext            = VK_NULL_HANDLE;
+  write.dstSet           = mDescriptorSet;
+  write.dstBinding       = 0;
+  write.dstArrayElement  = 0;
+  write.descriptorCount  = 1;
+  write.descriptorType   = type;
+  write.pImageInfo       = VK_NULL_HANDLE;
+  write.pBufferInfo      = &bufferInfo;
+  write.pTexelBufferView = VK_NULL_HANDLE;
 
   vkUpdateDescriptorSets(mContext->getDevice(), 1, &write, 0, VK_NULL_HANDLE);
 }
@@ -108,26 +114,26 @@ void Buffer::createBuffer(
       (deviceLocal ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
                    : (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 
-  auto createInfo = VkBufferCreateInfo{ .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                                        .pNext                 = VK_NULL_HANDLE,
-                                        .flags                 = 0,
-                                        .size                  = size,
-                                        .usage                 = usage,
-                                        .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
-                                        .queueFamilyIndexCount = 0,
-                                        .pQueueFamilyIndices   = VK_NULL_HANDLE };
+  VkBufferCreateInfo createInfo{};
+  createInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  createInfo.pNext                 = VK_NULL_HANDLE;
+  createInfo.flags                 = 0;
+  createInfo.size                  = size;
+  createInfo.usage                 = usage;
+  createInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+  createInfo.queueFamilyIndexCount = 0;
+  createInfo.pQueueFamilyIndices   = VK_NULL_HANDLE;
 
   expectResult("Buffer creation", vkCreateBuffer(context->getDevice(), &createInfo, nullptr, buffer));
 
-  auto memoryRequirements = VkMemoryRequirements{};
+  VkMemoryRequirements memoryRequirements{};
   vkGetBufferMemoryRequirements(context->getDevice(), *buffer, &memoryRequirements);
 
-  auto allocateInfo =
-      VkMemoryAllocateInfo{ .sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                            .pNext          = VK_NULL_HANDLE,
-                            .allocationSize = memoryRequirements.size,
-                            .memoryTypeIndex =
-                                context->findMemoryType(memoryRequirements.memoryTypeBits, memoryProperties) };
+  VkMemoryAllocateInfo allocateInfo{};
+  allocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocateInfo.pNext           = VK_NULL_HANDLE;
+  allocateInfo.allocationSize  = memoryRequirements.size;
+  allocateInfo.memoryTypeIndex = context->findMemoryType(memoryRequirements.memoryTypeBits, memoryProperties);
 
   expectResult("Memory allocation", vkAllocateMemory(context->getDevice(), &allocateInfo, nullptr, memory));
 

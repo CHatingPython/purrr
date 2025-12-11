@@ -16,7 +16,7 @@ std::vector<char> readFile(const char *filepath) {
   if (!file.is_open()) throw std::runtime_error("Failed to open a file");
   auto length = file.tellg();
 
-  auto content = std::vector<char>(length);
+  std::vector<char> content(length);
   file.seekg(0);
   file.read(content.data(), content.size());
 

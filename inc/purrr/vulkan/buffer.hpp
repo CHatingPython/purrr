@@ -16,7 +16,7 @@ namespace vulkan {
     Buffer(Context *context, const BufferInfo &info);
     ~Buffer();
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     virtual void copy(const void *data, size_t offset, size_t size) override;
   public:

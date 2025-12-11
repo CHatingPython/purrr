@@ -46,18 +46,19 @@ inline namespace win32 {
   }
 
   void Context::registerClass() {
-    auto windowClass = WNDCLASSEXW{ .cbSize        = sizeof(WNDCLASSEXW),
-                                    .style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC,
-                                    .lpfnWndProc   = Window::windowProcedure,
-                                    .cbClsExtra    = 0,
-                                    .cbWndExtra    = 0,
-                                    .hInstance     = mInstance,
-                                    .hIcon         = nullptr,
-                                    .hCursor       = LoadCursorW(mInstance, IDC_ARROW),
-                                    .hbrBackground = nullptr,
-                                    .lpszMenuName  = nullptr,
-                                    .lpszClassName = L"purrr",
-                                    .hIconSm       = nullptr };
+    WNDCLASSEXW windowClass{};
+    windowClass.cbSize        = sizeof(WNDCLASSEXW);
+    windowClass.style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+    windowClass.lpfnWndProc   = Window::windowProcedure;
+    windowClass.cbClsExtra    = 0;
+    windowClass.cbWndExtra    = 0;
+    windowClass.hInstance     = mInstance;
+    windowClass.hIcon         = nullptr;
+    windowClass.hCursor       = LoadCursorW(mInstance, IDC_ARROW);
+    windowClass.hbrBackground = nullptr;
+    windowClass.lpszMenuName  = nullptr;
+    windowClass.lpszClassName = L"purrr";
+    windowClass.hIconSm       = nullptr;
 
     mWindowClass = RegisterClassExW(&windowClass);
   }

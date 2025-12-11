@@ -36,54 +36,55 @@ purrr::Program *RenderTarget::createProgram(const ProgramInfo &info) {
 }
 
 void RenderTarget::createRenderPass(const RenderTargetInfo &info) {
-  auto attachments    = std::vector<VkAttachmentDescription>(info.imageCount);
-  auto attachmentRefs = std::vector<VkAttachmentReference>(info.imageCount);
+  std::vector<VkAttachmentDescription> attachments(info.imageCount);
+  std::vector<VkAttachmentReference>   attachmentRefs(info.imageCount);
 
   for (size_t i = 0; i < info.imageCount; ++i) {
-    Image *image = mImages[i];
+    attachments[i].flags          = 0;
+    attachments[i].format         = vkFormat(mImages[i]->getFormat());
+    attachments[i].samples        = VK_SAMPLE_COUNT_1_BIT;
+    attachments[i].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachments[i].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    attachments[i].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachments[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments[i].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachments[i].finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    attachments[i] = VkAttachmentDescription{ .flags          = 0,
-                                              .format         = vkFormat(image->getFormat()),
-                                              .samples        = VK_SAMPLE_COUNT_1_BIT,
-                                              .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                              .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
-                                              .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                              .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                              .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
-                                              .finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-
-    attachmentRefs[i] = VkAttachmentReference{ .attachment = static_cast<uint32_t>(i),
-                                               .layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+    attachmentRefs[i].attachment = static_cast<uint32_t>(i);
+    attachmentRefs[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
   }
 
-  auto subpass = VkSubpassDescription{ .flags                   = 0,
-                                       .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                       .inputAttachmentCount    = 0,
-                                       .pInputAttachments       = VK_NULL_HANDLE,
-                                       .colorAttachmentCount    = static_cast<uint32_t>(attachmentRefs.size()),
-                                       .pColorAttachments       = attachmentRefs.data(),
-                                       .pResolveAttachments     = VK_NULL_HANDLE,
-                                       .pDepthStencilAttachment = VK_NULL_HANDLE,
-                                       .preserveAttachmentCount = 0,
-                                       .pPreserveAttachments    = VK_NULL_HANDLE };
+  VkSubpassDescription subpass{};
+  subpass.flags                   = 0;
+  subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.inputAttachmentCount    = 0;
+  subpass.pInputAttachments       = VK_NULL_HANDLE;
+  subpass.colorAttachmentCount    = static_cast<uint32_t>(attachmentRefs.size());
+  subpass.pColorAttachments       = attachmentRefs.data();
+  subpass.pResolveAttachments     = VK_NULL_HANDLE;
+  subpass.pDepthStencilAttachment = VK_NULL_HANDLE;
+  subpass.preserveAttachmentCount = 0;
+  subpass.pPreserveAttachments    = VK_NULL_HANDLE;
 
-  auto dependency = VkSubpassDependency{ .srcSubpass      = VK_SUBPASS_EXTERNAL,
-                                         .dstSubpass      = 0,
-                                         .srcStageMask    = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                         .dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                         .srcAccessMask   = 0,
-                                         .dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                                         .dependencyFlags = 0 };
+  VkSubpassDependency dependency{};
+  dependency.srcSubpass      = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass      = 0;
+  dependency.srcStageMask    = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+  dependency.dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.srcAccessMask   = 0;
+  dependency.dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependency.dependencyFlags = 0;
 
-  auto createInfo = VkRenderPassCreateInfo{ .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                            .pNext           = VK_NULL_HANDLE,
-                                            .flags           = 0,
-                                            .attachmentCount = static_cast<uint32_t>(attachments.size()),
-                                            .pAttachments    = attachments.data(),
-                                            .subpassCount    = 1,
-                                            .pSubpasses      = &subpass,
-                                            .dependencyCount = 1,
-                                            .pDependencies   = &dependency };
+  VkRenderPassCreateInfo createInfo{};
+  createInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  createInfo.pNext           = VK_NULL_HANDLE;
+  createInfo.flags           = 0;
+  createInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+  createInfo.pAttachments    = attachments.data();
+  createInfo.subpassCount    = 1;
+  createInfo.pSubpasses      = &subpass;
+  createInfo.dependencyCount = 1;
+  createInfo.pDependencies   = &dependency;
 
   expectResult(
       "Render pass creation",
@@ -91,20 +92,21 @@ void RenderTarget::createRenderPass(const RenderTargetInfo &info) {
 }
 
 void RenderTarget::createFramebuffer(const RenderTargetInfo &info) {
-  auto attachments = std::vector<VkImageView>(info.imageCount);
+  std::vector<VkImageView> attachments(info.imageCount);
   for (size_t i = 0; i < info.imageCount; ++i) {
     attachments[i] = mImages[i]->getImageView();
   }
 
-  auto createInfo = VkFramebufferCreateInfo{ .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                             .pNext           = VK_NULL_HANDLE,
-                                             .flags           = 0,
-                                             .renderPass      = mRenderPass,
-                                             .attachmentCount = static_cast<uint32_t>(attachments.size()),
-                                             .pAttachments    = attachments.data(),
-                                             .width           = mWidth,
-                                             .height          = mHeight,
-                                             .layers          = 1 };
+  VkFramebufferCreateInfo createInfo{};
+  createInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  createInfo.pNext           = VK_NULL_HANDLE;
+  createInfo.flags           = 0;
+  createInfo.renderPass      = mRenderPass;
+  createInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+  createInfo.pAttachments    = attachments.data();
+  createInfo.width           = mWidth;
+  createInfo.height          = mHeight;
+  createInfo.layers          = 1;
 
   expectResult(
       "Framebuffer creation",

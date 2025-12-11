@@ -38,7 +38,7 @@ void Window::chooseSurfaceFormat() {
       "Surface formats query",
       vkGetPhysicalDeviceSurfaceFormatsKHR(mContext->getPhysicalDevice(), mSurface, &count, VK_NULL_HANDLE));
 
-  auto availableFormats = std::vector<VkSurfaceFormatKHR>(count);
+  std::vector<VkSurfaceFormatKHR> availableFormats(count);
   expectResult(
       "Surface formats query",
       vkGetPhysicalDeviceSurfaceFormatsKHR(mContext->getPhysicalDevice(), mSurface, &count, availableFormats.data()));
@@ -56,47 +56,52 @@ void Window::chooseSurfaceFormat() {
 }
 
 void Window::createRenderPass() {
-  auto attachment = VkAttachmentDescription{ .flags          = 0,
-                                             .format         = mFormat,
-                                             .samples        = VK_SAMPLE_COUNT_1_BIT,
-                                             .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                             .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
-                                             .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                             .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
-                                             .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR };
+  VkAttachmentDescription attachment{};
+  attachment.flags          = 0;
+  attachment.format         = mFormat;
+  attachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+  attachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+  attachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  attachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+  attachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-  auto attachmentReference =
-      VkAttachmentReference{ .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+  VkAttachmentReference attachmentReference{};
+  attachmentReference.attachment = 0;
+  attachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-  auto subpass = VkSubpassDescription{ .flags                   = 0,
-                                       .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                       .inputAttachmentCount    = 0,
-                                       .pInputAttachments       = VK_NULL_HANDLE,
-                                       .colorAttachmentCount    = 1,
-                                       .pColorAttachments       = &attachmentReference,
-                                       .pResolveAttachments     = VK_NULL_HANDLE,
-                                       .pDepthStencilAttachment = VK_NULL_HANDLE,
-                                       .preserveAttachmentCount = 0,
-                                       .pPreserveAttachments    = VK_NULL_HANDLE };
+  VkSubpassDescription subpass{};
+  subpass.flags                   = 0;
+  subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.inputAttachmentCount    = 0;
+  subpass.pInputAttachments       = VK_NULL_HANDLE;
+  subpass.colorAttachmentCount    = 1;
+  subpass.pColorAttachments       = &attachmentReference;
+  subpass.pResolveAttachments     = VK_NULL_HANDLE;
+  subpass.pDepthStencilAttachment = VK_NULL_HANDLE;
+  subpass.preserveAttachmentCount = 0;
+  subpass.pPreserveAttachments    = VK_NULL_HANDLE;
 
-  auto dependency = VkSubpassDependency{ .srcSubpass      = VK_SUBPASS_EXTERNAL,
-                                         .dstSubpass      = 0,
-                                         .srcStageMask    = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                         .dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                         .srcAccessMask   = 0,
-                                         .dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                                         .dependencyFlags = 0 };
+  VkSubpassDependency dependency{};
+  dependency.srcSubpass      = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass      = 0;
+  dependency.srcStageMask    = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+  dependency.dstStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.srcAccessMask   = 0;
+  dependency.dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependency.dependencyFlags = 0;
 
-  auto createInfo = VkRenderPassCreateInfo{ .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                            .pNext           = VK_NULL_HANDLE,
-                                            .flags           = 0,
-                                            .attachmentCount = 1,
-                                            .pAttachments    = &attachment,
-                                            .subpassCount    = 1,
-                                            .pSubpasses      = &subpass,
-                                            .dependencyCount = 1,
-                                            .pDependencies   = &dependency };
+  VkRenderPassCreateInfo createInfo{};
+  createInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  createInfo.pNext           = VK_NULL_HANDLE;
+  createInfo.flags           = 0;
+  createInfo.attachmentCount = 1;
+  createInfo.pAttachments    = &attachment;
+  createInfo.subpassCount    = 1;
+  createInfo.pSubpasses      = &subpass;
+  createInfo.dependencyCount = 1;
+  createInfo.pDependencies   = &dependency;
 
   expectResult(
       "Render pass creation",
@@ -104,7 +109,7 @@ void Window::createRenderPass() {
 }
 
 void Window::createSwapchain() {
-  auto capabilities = VkSurfaceCapabilitiesKHR{};
+  VkSurfaceCapabilitiesKHR capabilities{};
   expectResult(
       "Surface capabilities query",
       vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mContext->getPhysicalDevice(), mSurface, &capabilities));
@@ -126,24 +131,25 @@ void Window::createSwapchain() {
   if (capabilities.maxImageCount > 0 && minImageCount > capabilities.maxImageCount)
     minImageCount = capabilities.maxImageCount;
 
-  auto createInfo = VkSwapchainCreateInfoKHR{ .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                                              .pNext                 = VK_NULL_HANDLE,
-                                              .flags                 = 0,
-                                              .surface               = mSurface,
-                                              .minImageCount         = minImageCount,
-                                              .imageFormat           = mFormat,
-                                              .imageColorSpace       = mColorSpace,
-                                              .imageExtent           = mSwapchainExtent,
-                                              .imageArrayLayers      = 1,
-                                              .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                                              .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
-                                              .queueFamilyIndexCount = 0,
-                                              .pQueueFamilyIndices   = VK_NULL_HANDLE,
-                                              .preTransform          = capabilities.currentTransform,
-                                              .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-                                              .presentMode           = VK_PRESENT_MODE_FIFO_KHR,
-                                              .clipped               = VK_TRUE,
-                                              .oldSwapchain          = VK_NULL_HANDLE };
+  VkSwapchainCreateInfoKHR createInfo{};
+  createInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+  createInfo.pNext                 = VK_NULL_HANDLE;
+  createInfo.flags                 = 0;
+  createInfo.surface               = mSurface;
+  createInfo.minImageCount         = minImageCount;
+  createInfo.imageFormat           = mFormat;
+  createInfo.imageColorSpace       = mColorSpace;
+  createInfo.imageExtent           = mSwapchainExtent;
+  createInfo.imageArrayLayers      = 1;
+  createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+  createInfo.queueFamilyIndexCount = 0;
+  createInfo.pQueueFamilyIndices   = VK_NULL_HANDLE;
+  createInfo.preTransform          = capabilities.currentTransform;
+  createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  createInfo.presentMode           = VK_PRESENT_MODE_FIFO_KHR;
+  createInfo.clipped               = VK_TRUE;
+  createInfo.oldSwapchain          = VK_NULL_HANDLE;
 
   expectResult(
       "Swapchain creation",
@@ -165,22 +171,18 @@ void Window::createSwapchain() {
 void Window::createImageViews() {
   mImageViews.reserve(mImageCount);
 
-  auto createInfo =
-      VkImageViewCreateInfo{ .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                             .pNext            = VK_NULL_HANDLE,
-                             .flags            = 0,
-                             .image            = VK_NULL_HANDLE,
-                             .viewType         = VK_IMAGE_VIEW_TYPE_2D,
-                             .format           = mFormat,
-                             .components       = VkComponentMapping{ .r = VK_COMPONENT_SWIZZLE_R,
-                                                                     .g = VK_COMPONENT_SWIZZLE_G,
-                                                                     .b = VK_COMPONENT_SWIZZLE_B,
-                                                                     .a = VK_COMPONENT_SWIZZLE_A },
-                             .subresourceRange = VkImageSubresourceRange{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                                                                          .baseMipLevel   = 0,
-                                                                          .levelCount     = 1,
-                                                                          .baseArrayLayer = 0,
-                                                                          .layerCount     = 1 } };
+  VkImageViewCreateInfo createInfo{};
+  createInfo.sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  createInfo.pNext            = VK_NULL_HANDLE;
+  createInfo.flags            = 0;
+  createInfo.image            = VK_NULL_HANDLE;
+  createInfo.viewType         = VK_IMAGE_VIEW_TYPE_2D;
+  createInfo.format           = mFormat;
+  createInfo.components       = { VK_COMPONENT_SWIZZLE_R,
+                                  VK_COMPONENT_SWIZZLE_G,
+                                  VK_COMPONENT_SWIZZLE_B,
+                                  VK_COMPONENT_SWIZZLE_A };
+  createInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
   for (const VkImage &image : mImages) {
     createInfo.image = image;
@@ -194,15 +196,16 @@ void Window::createImageViews() {
 void Window::createFramebuffers() {
   mFramebuffers.reserve(mImageCount);
 
-  auto createInfo = VkFramebufferCreateInfo{ .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                             .pNext           = VK_NULL_HANDLE,
-                                             .flags           = 0,
-                                             .renderPass      = mRenderPass,
-                                             .attachmentCount = 1,
-                                             .pAttachments    = VK_NULL_HANDLE,
-                                             .width           = mSwapchainExtent.width,
-                                             .height          = mSwapchainExtent.height,
-                                             .layers          = 1 };
+  VkFramebufferCreateInfo createInfo{};
+  createInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  createInfo.pNext           = VK_NULL_HANDLE;
+  createInfo.flags           = 0;
+  createInfo.renderPass      = mRenderPass;
+  createInfo.attachmentCount = 1;
+  createInfo.pAttachments    = VK_NULL_HANDLE;
+  createInfo.width           = mSwapchainExtent.width;
+  createInfo.height          = mSwapchainExtent.height;
+  createInfo.layers          = 1;
 
   for (const VkImageView &imageView : mImageViews) {
     createInfo.pAttachments = &imageView;
@@ -214,8 +217,10 @@ void Window::createFramebuffers() {
 }
 
 void Window::createSemaphores() {
-  auto createInfo =
-      VkSemaphoreCreateInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, .pNext = VK_NULL_HANDLE, .flags = 0 };
+  VkSemaphoreCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+  createInfo.pNext = VK_NULL_HANDLE;
+  createInfo.flags = 0;
 
   expectResult(
       "Semaphore creation",

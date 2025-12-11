@@ -162,13 +162,13 @@ struct Event {
   Event()          = default;
   virtual ~Event() = default;
 
-  virtual constexpr EventType eventType() const = 0;
+  virtual EventType eventType() const = 0;
 };
 
 namespace events {
 
   struct WindowMoveEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::WindowMove; }
+    virtual EventType eventType() const override { return EventType::WindowMove; }
 
     WindowMoveEvent(int x, int y)
       : xPos(x), yPos(y) {}
@@ -177,7 +177,7 @@ namespace events {
   };
 
   struct WindowResizeEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::WindowResize; }
+    virtual EventType eventType() const override { return EventType::WindowResize; }
 
     WindowResizeEvent(int w, int h)
       : width(w), height(h) {}
@@ -186,7 +186,7 @@ namespace events {
   };
 
   struct MouseMoveEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::MouseMove; }
+    virtual EventType eventType() const override { return EventType::MouseMove; }
 
     MouseMoveEvent(double x, double y)
       : xPos(x), yPos(y) {}
@@ -195,7 +195,7 @@ namespace events {
   };
 
   struct MouseButtonEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::MouseButton; }
+    virtual EventType eventType() const override { return EventType::MouseButton; }
 
     MouseButtonEvent(MouseButton btn, bool p)
       : button(btn), pressed(p) {}
@@ -205,7 +205,7 @@ namespace events {
   };
 
   struct MouseWheelEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::MouseWheel; }
+    virtual EventType eventType() const override { return EventType::MouseWheel; }
 
     MouseWheelEvent(double d)
       : delta(d) {}
@@ -214,7 +214,7 @@ namespace events {
   };
 
   struct KeyEvent : public Event {
-    virtual constexpr EventType eventType() const override { return EventType::Key; }
+    virtual EventType eventType() const override { return EventType::Key; }
 
     KeyEvent(KeyCode code, KeyAction ac)
       : keyCode(code), action(ac) {}

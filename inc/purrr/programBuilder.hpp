@@ -36,13 +36,13 @@ public:
 
   ProgramBuilder &beginVertexInfo(uint32_t stride, VertexInputRate inputRate) {
     mVertexAttribOffsets.push_back(mVertexAttribs.size());
-    mVertexInfos.emplace_back(stride, inputRate, nullptr, 0);
+    mVertexInfos.push_back({ stride, inputRate, nullptr, 0 });
     return *this;
   }
 
   ProgramBuilder &addVertexAttrib(Format format, uint32_t offset) {
     if (mVertexAttribOffsets.empty()) throw std::runtime_error("Call beginVertexInfo before addVertexAttrib");
-    mVertexAttribs.emplace_back(format, offset);
+    mVertexAttribs.push_back({ format, offset });
     return *this;
   }
 
@@ -78,10 +78,10 @@ public:
     return *this;
   }
 public:
-  template <typename T>
-    requires requires(T *t, const ProgramInfo &info) {
-      { t->createProgram(info) } -> std::same_as<Program *>;
-    }
+  template <
+      typename T,
+      typename = std::enable_if<
+          std::is_same_v<decltype(std::declval<T *>()->createProgram(std::declval<const ProgramInfo &>())), Program *>>>
   Program *build(T *middleman) {
     for (size_t i = 0; i < mVertexInfos.size(); ++i) {
       mVertexInfos[i].attributes     = &mVertexAttribs[mVertexAttribOffsets[i]];

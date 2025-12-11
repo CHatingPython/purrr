@@ -13,7 +13,7 @@ enum class Api : uint8_t {
 
 class Object {
 public:
-  virtual constexpr Api api() const = 0;
+  virtual Api api() const = 0;
 };
 
 } // namespace purrr

@@ -12,7 +12,7 @@
 #undef min
 
 namespace purrr::platform {
-namespace win32 {
+inline namespace win32 {
 
   Window::Window(Context *context, const WindowInfo &info)
     : mContext(context) {
@@ -20,7 +20,7 @@ namespace win32 {
     fetchPositionAndSize();
 
     {
-      auto position = POINT{};
+      POINT position{};
       GetCursorPos(&position);
       inputMouseMove(position.x, position.y);
     }
@@ -45,7 +45,7 @@ namespace win32 {
   }
 
   void Window::setSize(const std::pair<int, int> &size) {
-    auto rect = RECT{ 0, 0, size.first, size.second };
+    RECT rect{ 0, 0, size.first, size.second };
 
     AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
 
@@ -60,7 +60,7 @@ namespace win32 {
   }
 
   void Window::setPosition(const std::pair<int, int> &position) {
-    auto rect = RECT{ position.first, position.second, 0, 0 };
+    RECT rect{ position.first, position.second, 0, 0 };
     AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
     SetWindowPos(mWindowHandle, HWND_TOP, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER);
   }
@@ -75,7 +75,7 @@ namespace win32 {
     mStyle   = WS_OVERLAPPEDWINDOW;
     mExStyle = WS_EX_OVERLAPPEDWINDOW;
 
-    auto rect = RECT{ 0, 0, info.width, info.height };
+    RECT rect{ 0, 0, info.width, info.height };
     ::AdjustWindowRectEx(&rect, mStyle, FALSE, mExStyle);
 
     int xPos = (info.xPos < 0) ? CW_USEDEFAULT : (info.xPos + rect.left);
@@ -136,12 +136,12 @@ namespace win32 {
   }
 
   void Window::fetchPositionAndSize() {
-    auto pos = POINT{};
+    POINT pos{};
     ClientToScreen(mWindowHandle, &pos);
     mXPos = static_cast<WORD>(pos.x);
     mYPos = static_cast<WORD>(pos.y);
 
-    auto area = RECT{};
+    RECT area{};
     GetClientRect(mWindowHandle, &area);
     mWidth  = static_cast<WORD>(area.right);
     mHeight = static_cast<WORD>(area.bottom);
@@ -229,7 +229,8 @@ namespace win32 {
         if (extended) {
           keyCode = KeyCode::RightControl;
         } else {
-          auto        next = MSG{};
+          MSG next{};
+
           const DWORD time = GetMessageTime();
 
           if (PeekMessageW(&next, NULL, 0, 0, PM_NOREMOVE)) {
@@ -263,11 +264,12 @@ namespace win32 {
 
 #ifdef _PURRR_BACKEND_VULKAN
   VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
-    auto createInfo = VkWin32SurfaceCreateInfoKHR{ .sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-                                                   .pNext     = VK_NULL_HANDLE,
-                                                   .flags     = 0,
-                                                   .hinstance = mContext->getInstance(),
-                                                   .hwnd      = mWindowHandle };
+    VkWin32SurfaceCreateInfoKHR createInfo{};
+    createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.pNext     = VK_NULL_HANDLE;
+    createInfo.flags     = 0;
+    createInfo.hinstance = mContext->getInstance();
+    createInfo.hwnd      = mWindowHandle;
 
     return vkCreateWin32SurfaceKHR(instance, &createInfo, VK_NULL_HANDLE, surface);
   }

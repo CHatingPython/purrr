@@ -16,7 +16,7 @@ namespace vulkan {
     Image(Context *context, const ImageInfo &info);
     ~Image();
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     virtual void copyData(size_t width, size_t height, size_t size, const void *data) override;
   public:

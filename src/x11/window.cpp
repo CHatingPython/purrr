@@ -107,11 +107,12 @@ inline namespace x11 {
 
 #ifdef _PURRR_BACKEND_VULKAN
   VkResult Window::createSurface(VkInstance instance, VkSurfaceKHR *surface) {
-    auto createInfo = VkXlibSurfaceCreateInfoKHR{ .sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-                                                  .pNext  = VK_NULL_HANDLE,
-                                                  .flags  = 0,
-                                                  .dpy    = mContext->getDisplay(),
-                                                  .window = mWindow };
+    VkXlibSurfaceCreateInfoKHR createInfo{};
+    createInfo.sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+    createInfo.pNext  = VK_NULL_HANDLE;
+    createInfo.flags  = 0;
+    createInfo.dpy    = mContext->getDisplay();
+    createInfo.window = mWindow;
 
     return vkCreateXlibSurfaceKHR(instance, &createInfo, VK_NULL_HANDLE, surface);
   }

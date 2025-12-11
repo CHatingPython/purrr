@@ -17,7 +17,7 @@ namespace vulkan {
     Sampler(Context *context, const SamplerInfo &info);
     ~Sampler();
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     VkSampler getSampler() const { return mSampler; }
   private:

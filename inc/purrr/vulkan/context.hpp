@@ -49,7 +49,7 @@ namespace vulkan {
       return *this;
     }
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     virtual purrr::Window       *createWindow(const WindowInfo &info) override;
     virtual purrr::Buffer       *createBuffer(const BufferInfo &info) override;

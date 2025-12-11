@@ -59,18 +59,13 @@ void Image::copyData(size_t width, size_t height, size_t size, const void *data)
       VK_ACCESS_TRANSFER_WRITE_BIT,
       commandBuffer);
 
-  auto region = VkBufferImageCopy{
-    .bufferOffset      = 0,
-    .bufferRowLength   = 0,
-    .bufferImageHeight = 0,
-    .imageSubresource  = VkImageSubresourceLayers{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                                                   .mipLevel       = 0,
-                                                   .baseArrayLayer = 0,
-                                                   .layerCount     = 1 },
-    .imageOffset       = VkOffset3D{},
-    .imageExtent =
-        VkExtent3D{ .width = static_cast<uint32_t>(width), .height = static_cast<uint32_t>(height), .depth = 1 }
-  };
+  VkBufferImageCopy region{};
+  region.bufferOffset      = 0;
+  region.bufferRowLength   = 0;
+  region.bufferImageHeight = 0;
+  region.imageSubresource  = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+  region.imageOffset       = {};
+  region.imageExtent       = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
 
   vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -88,37 +83,36 @@ void Image::createImage(const ImageInfo &info) {
   if (info.usage.texture) usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
   if (info.usage.renderTarget) usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-  auto createInfo = VkImageCreateInfo{ .sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                       .pNext                 = VK_NULL_HANDLE,
-                                       .flags                 = 0,
-                                       .imageType             = VK_IMAGE_TYPE_2D,
-                                       .format                = vkFormat(info.format),
-                                       .extent                = VkExtent3D{ .width  = static_cast<uint32_t>(info.width),
-                                                                            .height = static_cast<uint32_t>(info.height),
-                                                                            .depth  = 1 },
-                                       .mipLevels             = 1,
-                                       .arrayLayers           = 1,
-                                       .samples               = VK_SAMPLE_COUNT_1_BIT,
-                                       .tiling                = vkImageTiling(info.tiling),
-                                       .usage                 = usage,
-                                       .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
-                                       .queueFamilyIndexCount = 0,
-                                       .pQueueFamilyIndices   = VK_NULL_HANDLE,
-                                       .initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED };
+  VkImageCreateInfo createInfo{};
+  createInfo.sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  createInfo.pNext                 = VK_NULL_HANDLE;
+  createInfo.flags                 = 0;
+  createInfo.imageType             = VK_IMAGE_TYPE_2D;
+  createInfo.format                = vkFormat(info.format);
+  createInfo.extent                = { static_cast<uint32_t>(info.width), static_cast<uint32_t>(info.height), 1 };
+  createInfo.mipLevels             = 1;
+  createInfo.arrayLayers           = 1;
+  createInfo.samples               = VK_SAMPLE_COUNT_1_BIT;
+  createInfo.tiling                = vkImageTiling(info.tiling);
+  createInfo.usage                 = usage;
+  createInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+  createInfo.queueFamilyIndexCount = 0;
+  createInfo.pQueueFamilyIndices   = VK_NULL_HANDLE;
+  createInfo.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;
 
   expectResult("Image creation", vkCreateImage(mContext->getDevice(), &createInfo, VK_NULL_HANDLE, &mImage));
 }
 
 void Image::allocateMemory() {
-  auto memoryRequirements = VkMemoryRequirements{};
+  VkMemoryRequirements memoryRequirements{};
   vkGetImageMemoryRequirements(mContext->getDevice(), mImage, &memoryRequirements);
 
-  auto allocateInfo = VkMemoryAllocateInfo{
-    .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-    .pNext           = VK_NULL_HANDLE,
-    .allocationSize  = memoryRequirements.size,
-    .memoryTypeIndex = mContext->findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-  };
+  VkMemoryAllocateInfo allocateInfo{};
+  allocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocateInfo.pNext          = VK_NULL_HANDLE;
+  allocateInfo.allocationSize = memoryRequirements.size;
+  allocateInfo.memoryTypeIndex =
+      mContext->findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   expectResult("Memory allocation", vkAllocateMemory(mContext->getDevice(), &allocateInfo, nullptr, &mMemory));
 
@@ -126,22 +120,18 @@ void Image::allocateMemory() {
 }
 
 void Image::createImageView(const ImageInfo &info) {
-  auto createInfo =
-      VkImageViewCreateInfo{ .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                             .pNext            = VK_NULL_HANDLE,
-                             .flags            = 0,
-                             .image            = mImage,
-                             .viewType         = VK_IMAGE_VIEW_TYPE_2D,
-                             .format           = vkFormat(info.format),
-                             .components       = VkComponentMapping{ .r = VK_COMPONENT_SWIZZLE_R,
-                                                                     .g = VK_COMPONENT_SWIZZLE_G,
-                                                                     .b = VK_COMPONENT_SWIZZLE_B,
-                                                                     .a = VK_COMPONENT_SWIZZLE_A },
-                             .subresourceRange = VkImageSubresourceRange{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                                                                          .baseMipLevel   = 0,
-                                                                          .levelCount     = 1,
-                                                                          .baseArrayLayer = 0,
-                                                                          .layerCount     = 1 } };
+  VkImageViewCreateInfo createInfo{};
+  createInfo.sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  createInfo.pNext            = VK_NULL_HANDLE;
+  createInfo.flags            = 0;
+  createInfo.image            = mImage;
+  createInfo.viewType         = VK_IMAGE_VIEW_TYPE_2D;
+  createInfo.format           = vkFormat(info.format);
+  createInfo.components       = { VK_COMPONENT_SWIZZLE_R,
+                                  VK_COMPONENT_SWIZZLE_G,
+                                  VK_COMPONENT_SWIZZLE_B,
+                                  VK_COMPONENT_SWIZZLE_A };
+  createInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
   expectResult(
       "Image view creation",
@@ -154,30 +144,33 @@ void Image::allocateDescriptorSet(purrr::Sampler *sampler) {
 
   auto layout = mContext->getTextureDescriptorSetLayout();
 
-  auto allocateInfo = VkDescriptorSetAllocateInfo{ .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                                                   .pNext              = VK_NULL_HANDLE,
-                                                   .descriptorPool     = mContext->getDescriptorPool(),
-                                                   .descriptorSetCount = 1,
-                                                   .pSetLayouts        = &layout };
+  VkDescriptorSetAllocateInfo allocateInfo{};
+  allocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocateInfo.pNext              = VK_NULL_HANDLE;
+  allocateInfo.descriptorPool     = mContext->getDescriptorPool();
+  allocateInfo.descriptorSetCount = 1;
+  allocateInfo.pSetLayouts        = &layout;
 
   expectResult(
       "Descriptor set allocation",
       vkAllocateDescriptorSets(mContext->getDevice(), &allocateInfo, &mDescriptorSet));
 
-  auto imageInfo = VkDescriptorImageInfo{ .sampler     = vkSampler->getSampler(),
-                                          .imageView   = mImageView,
-                                          .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+  VkDescriptorImageInfo imageInfo{};
+  imageInfo.sampler     = vkSampler->getSampler();
+  imageInfo.imageView   = mImageView;
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-  auto write = VkWriteDescriptorSet{ .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                     .pNext            = VK_NULL_HANDLE,
-                                     .dstSet           = mDescriptorSet,
-                                     .dstBinding       = 0,
-                                     .dstArrayElement  = 0,
-                                     .descriptorCount  = 1,
-                                     .descriptorType   = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                     .pImageInfo       = &imageInfo,
-                                     .pBufferInfo      = VK_NULL_HANDLE,
-                                     .pTexelBufferView = VK_NULL_HANDLE };
+  VkWriteDescriptorSet write{};
+  write.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.pNext            = VK_NULL_HANDLE;
+  write.dstSet           = mDescriptorSet;
+  write.dstBinding       = 0;
+  write.dstArrayElement  = 0;
+  write.descriptorCount  = 1;
+  write.descriptorType   = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  write.pImageInfo       = &imageInfo;
+  write.pBufferInfo      = VK_NULL_HANDLE;
+  write.pTexelBufferView = VK_NULL_HANDLE;
 
   vkUpdateDescriptorSets(mContext->getDevice(), 1, &write, 0, VK_NULL_HANDLE);
 
@@ -196,21 +189,17 @@ void Image::transitionImageLayout(
     cmdBuf = mContext->beginSingleTimeCommands();
   }
 
-  auto barrier =
-      VkImageMemoryBarrier{ .sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                            .pNext               = VK_NULL_HANDLE,
-                            .srcAccessMask       = mAccess,
-                            .dstAccessMask       = dstAccess,
-                            .oldLayout           = mLayout,
-                            .newLayout           = dstLayout,
-                            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                            .image               = mImage,
-                            .subresourceRange    = VkImageSubresourceRange{ .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                                                                            .baseMipLevel   = 0,
-                                                                            .levelCount     = 1,
-                                                                            .baseArrayLayer = 0,
-                                                                            .layerCount     = 1 } };
+  VkImageMemoryBarrier barrier{};
+  barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  barrier.pNext               = VK_NULL_HANDLE;
+  barrier.srcAccessMask       = mAccess;
+  barrier.dstAccessMask       = dstAccess;
+  barrier.oldLayout           = mLayout;
+  barrier.newLayout           = dstLayout;
+  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrier.image               = mImage;
+  barrier.subresourceRange    = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
   vkCmdPipelineBarrier(cmdBuf, mStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 

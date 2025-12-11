@@ -22,7 +22,7 @@ namespace vulkan {
     Shader(Context *context, const ShaderInfo &info);
     ~Shader();
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     VkShaderModule        getModule() const { return mModule; }
     VkShaderStageFlagBits getStage() const { return mStage; }
@@ -38,7 +38,7 @@ namespace vulkan {
     Program(IRenderTarget *renderTarget, Context *context, const ProgramInfo &info);
     ~Program();
   public:
-    virtual constexpr Api api() const override { return Api::Vulkan; }
+    virtual Api api() const override { return Api::Vulkan; }
   public:
     bool sameRenderTarget(IRenderTarget *renderTarget) const { return mRenderTarget == renderTarget; }
   public:
