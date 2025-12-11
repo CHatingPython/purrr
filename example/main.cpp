@@ -28,12 +28,8 @@ static purrr::Sampler *sSampler = nullptr;
 
 struct Canvas {
   Canvas(size_t width, size_t height)
-    : image(sContext->createImage(purrr::ImageInfo{ .width   = width,
-                                                    .height  = height,
-                                                    .format  = purrr::Format::RGBA8Srgb,
-                                                    .tiling  = purrr::ImageTiling::Optimal,
-                                                    .usage   = { .texture = true },
-                                                    .sampler = sSampler })),
+    : image(sContext->createImage(
+          { width, height, purrr::Format::RGBA8Srgb, purrr::ImageTiling::Optimal, { true }, sSampler })),
       pixels(new uint8_t[width * height * 4]),
       width(width),
       height(height) {
@@ -74,14 +70,14 @@ int main(void) {
       purrr::Api::Vulkan,
       purrr::ContextInfo{ purrr::Version(1, 1, 0), purrr::VERSION, "purrr" });
 
-  sSampler = sContext->createSampler(purrr::SamplerInfo{ .magFilter    = purrr::Filter::Nearest,
-                                                         .minFilter    = purrr::Filter::Nearest,
-                                                         .mipFilter    = purrr::Filter::Nearest,
-                                                         .addressModeU = purrr::SamplerAddressMode::Repeat,
-                                                         .addressModeV = purrr::SamplerAddressMode::Repeat,
-                                                         .addressModeW = purrr::SamplerAddressMode::Repeat });
+  sSampler = sContext->createSampler({ purrr::Filter::Nearest,
+                                       purrr::Filter::Nearest,
+                                       purrr::Filter::Nearest,
+                                       purrr::SamplerAddressMode::Repeat,
+                                       purrr::SamplerAddressMode::Repeat,
+                                       purrr::SamplerAddressMode::Repeat });
 
-  purrr::Window *window = sContext->createWindow(purrr::WindowInfo{ 1920, 1080, "simple paint" });
+  purrr::Window *window = sContext->createWindow({ 1920, 1080, "simple paint" });
 
   purrr::Program *program = purrr::ProgramBuilder()
                                 .addShader(sContext, purrr::ShaderType::Vertex, readFile("./shader.vert.spv"))
