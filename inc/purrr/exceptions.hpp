@@ -8,12 +8,12 @@ namespace purrr {
 
 using namespace std::string_literals;
 
-class Unreachable : std::exception {
+class Unreachable : public std::exception {
 public:
   virtual const char *what() const noexcept override { return "Unreachable"; }
 };
 
-class InvalidUse : std::exception {
+class InvalidUse : public std::exception {
 public:
   InvalidUse()
     : mMessage("Invalid use") {}
