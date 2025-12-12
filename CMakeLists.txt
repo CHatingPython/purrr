@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 include(CMakePackageConfigHelpers)
 
-project(purrr CXX)
+project(purrr VERSION 0.0.0 LANGUAGES CXX)
 
 option(PURRR_VULKAN_SUPPORT "Enable Vulkan support" ON)
 
@@ -56,6 +56,8 @@ endif()
 # purrr
 # 
 set(CMAKE_CXX_STANDARD 17)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/inc/purrr/config.hpp)
 
 file(GLOB_RECURSE SRCS "src/**.cpp")
 file(GLOB_RECURSE HDRS "inc/**.hpp")

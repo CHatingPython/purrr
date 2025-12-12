@@ -9,10 +9,6 @@
 #include "purrr/image.hpp"        // IWYU pragma: export
 #include "purrr/renderTarget.hpp" // IWYU pragma: export
 
-namespace purrr {
-
-static constexpr Version VERSION = Version(0, 0, 0);
-
-}
+#include "purrr/config.hpp" // IWYU pragma: export
 
 #endif // _PURRR_HPP_

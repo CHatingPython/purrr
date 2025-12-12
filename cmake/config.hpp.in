@@ -1,0 +1,11 @@
+#ifndef _PURRR_CONFIG_HPP_
+#define _PURRR_CONFIG_HPP_
+
+namespace purrr {
+
+static constexpr Version VERSION =
+    Version(@CMAKE_PROJECT_VERSION_MAJOR@, @CMAKE_PROJECT_VERSION_MINOR@, @CMAKE_PROJECT_VERSION_PATCH@);
+
+}
+
+#endif // _PURRR_CONFIG_HPP_
