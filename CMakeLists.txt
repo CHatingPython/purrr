@@ -86,6 +86,11 @@ if(MINGW)
   target_link_libraries(example PRIVATE -static)
 endif()
 
+target_compile_options(example PRIVATE
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+
 # 
 # Install
 # 

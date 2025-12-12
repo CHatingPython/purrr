@@ -89,15 +89,15 @@ public:
                                            : (mVertexAttribs.size() - mVertexAttribOffsets[i]);
     }
 
-    return middleman->createProgram(ProgramInfo{ .shaders         = mShaders.data(),
-                                                 .shaderCount     = mShaders.size(),
-                                                 .vertexInfos     = mVertexInfos.data(),
-                                                 .vertexInfoCount = mVertexInfos.size(),
-                                                 .topology        = mTopology,
-                                                 .cullMode        = mCullMode,
-                                                 .frontFace       = mFrontFace,
-                                                 .slots           = mSlots.data(),
-                                                 .slotCount       = mSlots.size() });
+    return middleman->createProgram(ProgramInfo{ mShaders.data(),
+                                                 mShaders.size(),
+                                                 mVertexInfos.data(),
+                                                 mVertexInfos.size(),
+                                                 mTopology,
+                                                 mCullMode,
+                                                 mFrontFace,
+                                                 mSlots.data(),
+                                                 mSlots.size() });
   }
 private:
   std::vector<Shader *>        mMyShaders           = {};

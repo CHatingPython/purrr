@@ -29,7 +29,7 @@ static purrr::Sampler *sSampler = nullptr;
 struct Canvas {
   Canvas(size_t width, size_t height)
     : image(sContext->createImage(
-          { width, height, purrr::Format::RGBA8Srgb, purrr::ImageTiling::Optimal, { true }, sSampler })),
+          { width, height, purrr::Format::RGBA8Srgb, purrr::ImageTiling::Optimal, { true, false }, sSampler })),
       pixels(new uint8_t[width * height * 4]),
       width(width),
       height(height) {
